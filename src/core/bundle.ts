@@ -37,8 +37,6 @@ export async function buildBundle(opts: BundleOptions): Promise<string> {
   const { prompt, files = [], cwd = process.cwd() } = opts;
   const parts: string[] = [];
 
-  // Header
-  parts.push('# Prompt\n');
   parts.push(prompt);
   parts.push('');
 
