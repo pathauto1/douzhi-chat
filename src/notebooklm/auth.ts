@@ -1,3 +1,4 @@
+import { statSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from 'playwright';
@@ -133,11 +134,28 @@ function isAllowedCookieDomain(domain: string): boolean {
   );
 }
 
-function getGeminiProfileDir(): string {
+function getProfileDir(): string {
+  // Explicit override takes precedence
+  if (process.env.NOTEBOOKLM_PROFILE_DIR) {
+    return process.env.NOTEBOOKLM_PROFILE_DIR;
+  }
+
   const home = process.env.TEN_X_CHAT_HOME
     ? process.env.TEN_X_CHAT_HOME.replace(/^~(?=$|[/])/, process.env.HOME ?? '')
     : path.join(process.env.HOME ?? '', '.10x-chat');
-  return process.env.NOTEBOOKLM_PROFILE_DIR ?? path.join(home, 'profiles', 'gemini');
+
+  // Prefer the notebooklm profile (created by `login notebooklm`),
+  // fall back to gemini profile (shared Google auth)
+  const notebooklmDir = path.join(home, 'profiles', 'notebooklm');
+  const geminiDir = path.join(home, 'profiles', 'gemini');
+
+  try {
+    // Check if notebooklm profile has a Default/ directory (Chromium profile created by login)
+    statSync(path.join(notebooklmDir, 'Default'));
+    return notebooklmDir;
+  } catch {
+    return geminiDir;
+  }
 }
 
 function isGoogleAuthRedirect(url: string): boolean {
@@ -156,7 +174,7 @@ function containsGoogleAuthRedirect(text: string): boolean {
 }
 
 async function readProfileStorageState(profileDir?: string): Promise<PlaywrightStorageState> {
-  const dir = profileDir ?? getGeminiProfileDir();
+  const dir = profileDir ?? getProfileDir();
   const storageStatePath = path.join(dir, 'storage_state.json');
 
   try {
