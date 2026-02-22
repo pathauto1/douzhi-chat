@@ -21,6 +21,17 @@ describe('Provider Registry', () => {
 
   it('should throw for unknown provider', () => {
     expect(() => getProvider('unknown' as never)).toThrow('Unknown provider');
+    // Prototype pollution guard
+    expect(() => getProvider('toString' as never)).toThrow('Unknown provider');
+    expect(() => getProvider('__proto__' as never)).toThrow('Unknown provider');
+  });
+
+  it('should get grok provider by name', () => {
+    const provider = getProvider('grok');
+    expect(provider.config.name).toBe('grok');
+    expect(provider.config.displayName).toBe('Grok');
+    expect(provider.config.url).toBe('https://grok.com');
+    expect(provider.actions).toBeDefined();
   });
 
   it('should validate provider names', () => {

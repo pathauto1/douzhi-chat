@@ -100,10 +100,13 @@ export const chatgptActions: ProviderActions = {
     const POLL_INTERVAL = 1000;
 
     while (Date.now() - startTime < timeoutMs) {
+      // If stop button is visible, streaming is still in progress — reset stability
+      const isStreaming = await page.$(SELECTORS.stopButton);
+
       const lastTurn = page.locator(SELECTORS.assistantTurn).last();
       const currentText = (await lastTurn.textContent())?.trim() ?? '';
 
-      if (currentText === lastText) {
+      if (currentText === lastText && !isStreaming) {
         stableCount++;
         if (stableCount >= STABLE_THRESHOLD && currentText.length > 0) {
           break;

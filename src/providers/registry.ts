@@ -13,12 +13,11 @@ const PROVIDERS: Record<ProviderName, Provider> = {
 
 /** Get a provider by name, throws if not found. */
 export function getProvider(name: ProviderName): Provider {
-  const provider = PROVIDERS[name];
   if (!Object.hasOwn(PROVIDERS, name)) {
     const available = Object.keys(PROVIDERS).join(', ');
     throw new Error(`Unknown provider "${name}". Available: ${available}`);
   }
-  return provider;
+  return PROVIDERS[name];
 }
 
 /** List all registered provider names. */
