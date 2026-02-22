@@ -89,24 +89,27 @@ export const chatgptActions: ProviderActions = {
     const initialUrl = page.url();
 
     // ChatGPT navigates from / to /c/<id> after sending a new message.
-    // This resets the DOM, so we cannot rely on a pre-counted nth() index.
-    // Instead, we poll for any assistant turn to appear and stabilize.
+    // This resets the DOM, so we cannot rely on a fixed nth() index.
+    // Strategy: track initial turn count + URL to detect the new response.
+    const initialTurnCount = await page.locator(SELECTORS.assistantTurn).count();
 
-    // Phase 1: Wait for at least one assistant turn to appear
-    const waitForTurn = async (): Promise<void> => {
+    // Phase 1: Wait for a new assistant turn to appear
+    const waitForNewTurn = async (): Promise<void> => {
       while (Date.now() - startTime < timeoutMs) {
-        const count = await page.locator(SELECTORS.assistantTurn).count();
-        if (count > 0) {
-          // If URL changed (new conversation), any turn is "ours"
-          if (page.url() !== initialUrl) return;
-          // If same URL, ensure the response is fresh (not a cached old one)
-          return;
-        }
+        const currentUrl = page.url();
+        const currentCount = await page.locator(SELECTORS.assistantTurn).count();
+
+        // Case 1: URL changed (new conversation) — any turn is "ours"
+        if (currentUrl !== initialUrl && currentCount > 0) return;
+
+        // Case 2: Same URL but turn count increased — new response arrived
+        if (currentUrl === initialUrl && currentCount > initialTurnCount) return;
+
         await page.waitForTimeout(500);
       }
       throw new Error('Timed out waiting for ChatGPT assistant response');
     };
-    await waitForTurn();
+    await waitForNewTurn();
 
     // Phase 2: Poll until the response stops changing and streaming is complete
     let lastText = '';
@@ -116,7 +119,8 @@ export const chatgptActions: ProviderActions = {
 
     while (Date.now() - startTime < timeoutMs) {
       // If stop button is visible, streaming is still in progress — reset stability
-      const isStreaming = await page.$(SELECTORS.stopButton);
+      const stopBtn = await page.$(SELECTORS.stopButton);
+      const isStreaming = stopBtn ? await stopBtn.isVisible() : false;
 
       const lastTurn = page.locator(SELECTORS.assistantTurn).last();
       const currentText = (await lastTurn.textContent())?.trim() ?? '';
