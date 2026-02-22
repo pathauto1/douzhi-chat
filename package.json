@@ -1,0 +1,74 @@
+{
+  "name": "10x-chat",
+  "version": "0.1.0",
+  "description": "CLI to chat with web AI agents (ChatGPT, Gemini, Claude) via browser automation",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "bin": {
+    "10x-chat": "dist/bin/cli.js"
+  },
+  "files": [
+    "dist",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx src/bin/cli.ts",
+    "start": "pnpm run build && node dist/bin/cli.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --fix .",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "prepublishOnly": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "ai",
+    "chatgpt",
+    "gemini",
+    "claude",
+    "cli",
+    "browser-automation",
+    "playwright"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nicobao/10x-chat.git"
+  },
+  "homepage": "https://github.com/nicobao/10x-chat#readme",
+  "bugs": {
+    "url": "https://github.com/nicobao/10x-chat/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "clipboardy": "^4.0.0",
+    "commander": "^14.0.0",
+    "fast-glob": "^3.3.3",
+    "json5": "^2.2.3",
+    "playwright": "^1.52.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
+  },
+  "packageManager": "pnpm@10.13.1"
+}
