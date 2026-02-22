@@ -86,14 +86,29 @@ export const chatgptActions: ProviderActions = {
   ): Promise<CapturedResponse> {
     const { timeoutMs, onChunk } = opts;
     const startTime = Date.now();
+    const initialUrl = page.url();
 
-    // Count existing assistant turns before our submission
-    const existingTurns = await page.locator(SELECTORS.assistantTurn).count();
+    // ChatGPT navigates from / to /c/<id> after sending a new message.
+    // This resets the DOM, so we cannot rely on a pre-counted nth() index.
+    // Instead, we poll for any assistant turn to appear and stabilize.
 
-    // Wait for a new assistant turn to appear using Playwright's locator API
-    await page.locator(SELECTORS.assistantTurn).nth(existingTurns).waitFor({ timeout: timeoutMs });
+    // Phase 1: Wait for at least one assistant turn to appear
+    const waitForTurn = async (): Promise<void> => {
+      while (Date.now() - startTime < timeoutMs) {
+        const count = await page.locator(SELECTORS.assistantTurn).count();
+        if (count > 0) {
+          // If URL changed (new conversation), any turn is "ours"
+          if (page.url() !== initialUrl) return;
+          // If same URL, ensure the response is fresh (not a cached old one)
+          return;
+        }
+        await page.waitForTimeout(500);
+      }
+      throw new Error('Timed out waiting for ChatGPT assistant response');
+    };
+    await waitForTurn();
 
-    // Poll until the response stops changing (streaming complete)
+    // Phase 2: Poll until the response stops changing and streaming is complete
     let lastText = '';
     let stableCount = 0;
     const STABLE_THRESHOLD = 3;

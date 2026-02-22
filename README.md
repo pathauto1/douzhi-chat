@@ -1,6 +1,6 @@
 # 10x-chat
 
-> Chat with web AI agents (ChatGPT, Gemini, Claude) from your terminal via browser automation.
+> Chat with web AI agents (ChatGPT, Gemini, Claude, Grok) from your terminal via browser automation.
 
 10x-chat uses [Playwright](https://playwright.dev) to automate browser sessions with persisted login profiles. Login once, then send prompts — bundled with file context — from your CLI or AI coding agent.
 
@@ -12,25 +12,23 @@ Paste this into your [OpenClaw](https://openclaw.ai) chat to install as a skill:
 https://raw.githubusercontent.com/RealMikeChong/10x-chat/refs/heads/main/skills/10x-chat/SKILL.md
 ```
 
-## Install
-
-```bash
-npm install -g 10x-chat
-npx playwright install chromium  # one-time browser setup
-```
-
 ## Quick Start
 
 ```bash
+npx playwright install chromium  # one-time browser setup
+
 # 1. Login to a provider (opens a browser window)
-10x-chat login chatgpt
+npx 10x-chat@latest login chatgpt
 
 # 2. Send a prompt
-10x-chat chat -p "Explain this error" --provider chatgpt --file "src/**/*.ts"
+npx 10x-chat@latest chat -p "Explain this error" --provider chatgpt --file "src/**/*.ts"
 
 # 3. View session history
-10x-chat status
+npx 10x-chat@latest status
 ```
+
+> [!TIP]
+> Use `bunx` (bun.sh) instead of `npx` for faster startup.
 
 ## Commands
 
@@ -39,10 +37,11 @@ npx playwright install chromium  # one-time browser setup
 Opens a headed browser for you to authenticate. The session persists across runs.
 
 ```bash
-10x-chat login chatgpt       # Login to ChatGPT
-10x-chat login gemini         # Login to Gemini
-10x-chat login claude         # Login to Claude
-10x-chat login --status       # Check login status for all providers
+npx 10x-chat@latest login chatgpt       # Login to ChatGPT
+npx 10x-chat@latest login gemini         # Login to Gemini
+npx 10x-chat@latest login claude         # Login to Claude
+npx 10x-chat@latest login grok           # Login to Grok
+npx 10x-chat@latest login --status       # Check login status for all providers
 ```
 
 ### `chat`
@@ -50,17 +49,17 @@ Opens a headed browser for you to authenticate. The session persists across runs
 Send a prompt to an AI provider via browser automation.
 
 ```bash
-10x-chat chat -p "Review this code for bugs" --provider chatgpt --file "src/**/*.ts"
-10x-chat chat -p "Debug this error" --file "logs/error.log"
-10x-chat chat -p "Explain this" --dry-run              # Preview bundle without sending
-10x-chat chat -p "Explain this" --copy                  # Copy bundle to clipboard
-10x-chat chat -p "Long task" --timeout 600000 --headed  # 10min timeout, visible browser
+npx 10x-chat@latest chat -p "Review this code for bugs" --provider chatgpt --file "src/**/*.ts"
+npx 10x-chat@latest chat -p "Debug this error" --file "logs/error.log"
+npx 10x-chat@latest chat -p "Explain this" --dry-run              # Preview bundle without sending
+npx 10x-chat@latest chat -p "Explain this" --copy                  # Copy bundle to clipboard
+npx 10x-chat@latest chat -p "Long task" --timeout 600000 --headed  # 10min timeout, visible browser
 ```
 
 | Flag | Description |
 |------|-------------|
 | `-p, --prompt <text>` | **(required)** The prompt to send |
-| `--provider <name>` | Provider: `chatgpt`, `gemini`, `claude` (default: config) |
+| `--provider <name>` | Provider: `chatgpt`, `gemini`, `claude`, `grok` (default: config) |
 | `--model <name>` | Model to select in the UI |
 | `-f, --file <paths...>` | Files/globs to bundle as context |
 | `--copy` | Copy bundle to clipboard instead of sending |
@@ -73,8 +72,8 @@ Send a prompt to an AI provider via browser automation.
 List recent chat sessions.
 
 ```bash
-10x-chat status              # Last 24 hours
-10x-chat status --hours 72   # Last 3 days
+npx 10x-chat@latest status              # Last 24 hours
+npx 10x-chat@latest status --hours 72   # Last 3 days
 ```
 
 ### `session <id>`
@@ -82,7 +81,7 @@ List recent chat sessions.
 View details of a specific session.
 
 ```bash
-10x-chat session <id> --render   # Pretty-print the response
+npx 10x-chat@latest session <id> --render   # Pretty-print the response
 ```
 
 ### `config`
@@ -90,10 +89,10 @@ View details of a specific session.
 View or modify configuration.
 
 ```bash
-10x-chat config show
-10x-chat config set provider gemini
-10x-chat config set timeout 600000
-10x-chat config set headless false
+npx 10x-chat@latest config show
+npx 10x-chat@latest config set provider gemini
+npx 10x-chat@latest config set timeout 600000
+npx 10x-chat@latest config set headless false
 ```
 
 ### `skill`
@@ -101,8 +100,8 @@ View or modify configuration.
 Manage the agent integration skill (for Codex, Claude Code, etc).
 
 ```bash
-10x-chat skill install   # Install SKILL.md to ~/.codex/skills/
-10x-chat skill show      # Display SKILL.md content
+npx 10x-chat@latest skill install   # Install SKILL.md to ~/.codex/skills/
+npx 10x-chat@latest skill show      # Display SKILL.md content
 ```
 
 ## File Bundling
@@ -110,7 +109,7 @@ Manage the agent integration skill (for Codex, Claude Code, etc).
 The `--file` flag accepts globs. Files are assembled into a markdown bundle sent as the prompt:
 
 ```bash
-10x-chat chat -p "Review these" --file "src/**/*.ts" "!src/**/*.test.ts"
+npx 10x-chat@latest chat -p "Review these" --file "src/**/*.ts" "!src/**/*.test.ts"
 ```
 
 Security-sensitive files (`.env*`, `*.pem`, `*.key`, etc.) are automatically excluded.
@@ -122,7 +121,8 @@ Security-sensitive files (`.env*`, `*.pem`, `*.key`, etc.) are automatically exc
 ├── profiles/
 │   ├── chatgpt/          # Playwright persistent browser profile
 │   ├── gemini/
-│   └── claude/
+│   ├── claude/
+│   └── grok/
 ├── sessions/
 │   └── <uuid>/
 │       ├── meta.json     # Session metadata
@@ -136,7 +136,7 @@ Security-sensitive files (`.env*`, `*.pem`, `*.key`, etc.) are automatically exc
 10x-chat includes a `SKILL.md` for AI coding agents. Install it with:
 
 ```bash
-10x-chat skill install
+npx 10x-chat@latest skill install
 ```
 
 This lets agents like Codex or Claude Code use 10x-chat to query other models for cross-validation, code review, or debugging help.
