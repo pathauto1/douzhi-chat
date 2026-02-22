@@ -1,4 +1,7 @@
+import { stat } from 'node:fs/promises';
+import path from 'node:path';
 import chalk from 'chalk';
+import fg from 'fast-glob';
 import { launchBrowser } from '../browser/index.js';
 import { loadConfig } from '../config.js';
 import { getProvider } from '../providers/index.js';
@@ -18,9 +21,10 @@ export interface ChatResult {
  * Execute a chat interaction with a provider:
  * 1. Build the prompt bundle
  * 2. Launch the browser
- * 3. Submit the prompt
- * 4. Capture the response
- * 5. Save session
+ * 3. Attach files (if any)
+ * 4. Submit the prompt
+ * 5. Capture the response
+ * 6. Save session
  */
 export async function runChat(options: ChatOptions): Promise<ChatResult> {
   const config = await loadConfig();
@@ -69,6 +73,24 @@ export async function runChat(options: ChatOptions): Promise<ChatResult> {
 
     // Submit prompt
     console.log(chalk.dim('Submitting prompt...'));
+
+    // Attach files if provided
+    if (options.attach && options.attach.length > 0) {
+      if (!provider.actions.attachFiles) {
+        console.warn(
+          chalk.yellow(
+            `⚠ Provider '${providerName}' does not support file attachments. --attach will be ignored.`,
+          ),
+        );
+      } else {
+        const resolvedPaths = await resolveAttachPaths(options.attach);
+        if (resolvedPaths.length > 0) {
+          console.log(chalk.dim(`Attaching ${resolvedPaths.length} file(s)...`));
+          await provider.actions.attachFiles(browser.page, resolvedPaths);
+        }
+      }
+    }
+
     await provider.actions.submitPrompt(browser.page, bundle);
 
     // Capture response
@@ -106,4 +128,38 @@ export async function runChat(options: ChatOptions): Promise<ChatResult> {
   } finally {
     await browser.close();
   }
+}
+
+/**
+ * Resolve --attach paths (supports globs) to absolute file paths.
+ * Validates that all resolved paths exist and are files.
+ */
+async function resolveAttachPaths(patterns: string[]): Promise<string[]> {
+  const resolved: string[] = [];
+
+  for (const pattern of patterns) {
+    // Check if it's a glob or a literal path
+    if (/[*?{}[\]]/.test(pattern)) {
+      const matches = await fg(pattern, { absolute: true, onlyFiles: true });
+      if (matches.length === 0) {
+        throw new Error(`No files matched attachment pattern: ${pattern}`);
+      }
+      resolved.push(...matches);
+    } else {
+      const abs = path.resolve(pattern);
+      try {
+        const s = await stat(abs);
+        if (s.isFile()) {
+          resolved.push(abs);
+        } else {
+          console.warn(chalk.yellow(`Skipping directory: ${pattern}`));
+        }
+      } catch {
+        throw new Error(`Attachment not found: ${pattern}`);
+      }
+    }
+  }
+
+  // Deduplicate in case overlapping globs resolved the same file
+  return [...new Set(resolved)];
 }

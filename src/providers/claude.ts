@@ -15,6 +15,7 @@ const SELECTORS = {
   composer: '[contenteditable="true"].ProseMirror, div[enterkeyhint="enter"]',
   sendButton: 'button[aria-label="Send Message"], button[data-testid="send-message"]',
   responseTurn: '[data-is-streaming], .font-claude-message, [data-testid="assistant-message"]',
+  fileInput: '#chat-input-file-upload-onpage',
 } as const;
 
 export const claudeActions: ProviderActions = {
@@ -26,6 +27,12 @@ export const claudeActions: ProviderActions = {
     } catch {
       return false;
     }
+  },
+
+  async attachFiles(page: Page, filePaths: string[]): Promise<void> {
+    const fileInput = page.locator(SELECTORS.fileInput).first();
+    await fileInput.setInputFiles(filePaths);
+    await page.waitForTimeout(2000);
   },
 
   async submitPrompt(page: Page, prompt: string): Promise<void> {

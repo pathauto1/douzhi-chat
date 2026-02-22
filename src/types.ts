@@ -32,6 +32,9 @@ export interface ProviderActions {
   /** Submit a prompt (type into composer, click send). */
   submitPrompt(page: Page, prompt: string): Promise<void>;
 
+  /** Attach files (images, documents) to the composer before sending. */
+  attachFiles?(page: Page, filePaths: string[]): Promise<void>;
+
   /** Wait for the assistant response and extract it. */
   captureResponse(
     page: Page,
@@ -91,6 +94,7 @@ export interface ChatOptions {
   providers?: ProviderName[];
   model?: string;
   file?: string[];
+  attach?: string[];
   copy?: boolean;
   dryRun?: boolean;
   headed?: boolean;

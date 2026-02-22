@@ -12,6 +12,7 @@ export function createChatCommand(): Command {
     .option('--provider <name>', 'Provider to use (chatgpt, gemini, claude, grok)')
     .option('--model <name>', 'Model to select')
     .option('-f, --file <paths...>', 'Files/globs to include as context')
+    .option('-a, --attach <paths...>', 'Images/files to upload as attachments')
     .option('--copy', 'Copy the bundle to clipboard instead of sending')
     .option('--dry-run', 'Preview the bundle without sending')
     .option('--headed', 'Show browser window during chat')
@@ -55,8 +56,12 @@ export function createChatCommand(): Command {
           provider: provider as ProviderName | undefined,
           model: options.model,
           file: options.file,
+          attach: options.attach,
           headed: options.headed,
-          timeoutMs: Number.parseInt(options.timeout, 10),
+          timeoutMs: (() => {
+            const t = Number.parseInt(options.timeout, 10);
+            return Number.isFinite(t) && t > 0 ? t : 300_000;
+          })(),
         });
 
         console.log('');

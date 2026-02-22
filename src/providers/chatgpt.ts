@@ -19,6 +19,8 @@ const SELECTORS = {
   stopButton: 'button[aria-label="Stop streaming"]',
   assistantTurn: '[data-message-author-role="assistant"]',
   loginPage: 'button:has-text("Log in"), button:has-text("Sign up")',
+  /** Hidden file input — exclude the dedicated photo/camera inputs */
+  fileInput: 'input[type="file"]:not(#upload-photos):not(#upload-camera)',
 } as const;
 
 export const chatgptActions: ProviderActions = {
@@ -40,6 +42,13 @@ export const chatgptActions: ProviderActions = {
     } catch {
       return false;
     }
+  },
+
+  async attachFiles(page: Page, filePaths: string[]): Promise<void> {
+    const fileInput = page.locator(SELECTORS.fileInput).first();
+    await fileInput.setInputFiles(filePaths);
+    // Wait for upload indicators to appear and settle
+    await page.waitForTimeout(2000);
   },
 
   async submitPrompt(page: Page, prompt: string): Promise<void> {

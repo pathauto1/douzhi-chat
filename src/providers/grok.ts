@@ -20,6 +20,7 @@ const SELECTORS = {
   /** Login page indicators */
   loginPage: 'a[href*="accounts.x.com"], button:has-text("Sign in"), a:has-text("Sign in")',
   modelSelector: '#model-select-trigger',
+  fileInput: 'input[type="file"][name="files"]',
 } as const;
 
 export const grokActions: ProviderActions = {
@@ -40,6 +41,12 @@ export const grokActions: ProviderActions = {
     } catch {
       return false;
     }
+  },
+
+  async attachFiles(page: Page, filePaths: string[]): Promise<void> {
+    const fileInput = page.locator(SELECTORS.fileInput).first();
+    await fileInput.setInputFiles(filePaths);
+    await page.waitForTimeout(2000);
   },
 
   async submitPrompt(page: Page, prompt: string): Promise<void> {
