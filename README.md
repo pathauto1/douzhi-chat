@@ -4,6 +4,28 @@
 
 10x-chat uses [Playwright](https://playwright.dev) to automate browser sessions with persisted login profiles. Login once, then send prompts — bundled with file context — from your CLI or AI coding agent.
 
+## Use with OpenClaw
+
+10x-chat is built as a [skill](https://docs.openclaw.ai/skills) for [OpenClaw](https://openclaw.ai). Paste the SKILL.md URL into your OpenClaw assistant to install:
+
+```
+https://raw.githubusercontent.com/RealMikeChong/10x-chat/refs/heads/main/skills/10x-chat/SKILL.md
+```
+
+Or install manually:
+
+```bash
+# Option 1: Copy the skill directory
+mkdir -p ~/.openclaw/skills/10x-chat
+curl -o ~/.openclaw/skills/10x-chat/SKILL.md \
+  https://raw.githubusercontent.com/RealMikeChong/10x-chat/refs/heads/main/skills/10x-chat/SKILL.md
+
+# Option 2: Use the built-in installer (also works for Codex, Claude Code)
+npx 10x-chat skill install
+```
+
+Once installed, your OpenClaw agent can call 10x-chat to cross-validate answers, get code reviews from other models, or ask a different AI when stuck.
+
 ## Install
 
 ```bash
@@ -144,12 +166,12 @@ This lets agents like Codex or Claude Code use 10x-chat to query other models fo
 ## Development
 
 ```bash
-pnpm install
-pnpm run dev login chatgpt    # Run CLI in dev mode
-pnpm run typecheck             # Type check
-pnpm run lint                  # Lint
-pnpm run test                  # Run tests
-pnpm run build                 # Build for production
+bun install
+bun run dev login chatgpt      # Run CLI in dev mode
+bun run typecheck               # Type check
+bun run lint                    # Lint
+bun run test                    # Run tests
+bun run build                   # Build for production
 ```
 
 ## Publishing
