@@ -16,48 +16,56 @@ Use 10x-chat to send prompts to web-based AI agents (ChatGPT, Gemini, Claude, Gr
 
 ## Commands
 
-use `bunx` (bun.sh) instead `npx` if you prefer speed.
+Default to running from source (not npm `@latest`) so Yuanbao is available.
 
 ```bash
+# Bootstrap from source (run once, then pull updates when needed)
+git clone https://github.com/pathauto1/10x-chat ~/tools/10x-chat-yuanbao || true
+cd ~/tools/10x-chat-yuanbao
+git pull
+npm install
+npx playwright install chromium
+
 # Login (one-time per provider — opens browser for user to authenticate)
-npx 10x-chat@latest login chatgpt
-npx 10x-chat@latest login gemini
-npx 10x-chat@latest login claude
-npx 10x-chat@latest login grok
-npx 10x-chat@latest login notebooklm
-npx 10x-chat@latest login yuanbao
+npx tsx src/bin/cli.ts login chatgpt
+npx tsx src/bin/cli.ts login gemini
+npx tsx src/bin/cli.ts login claude
+npx tsx src/bin/cli.ts login grok
+npx tsx src/bin/cli.ts login notebooklm
+npx tsx src/bin/cli.ts login yuanbao
 
 # Chat with a single provider
-npx 10x-chat@latest chat -p "Review this code for bugs" --provider chatgpt --file "src/**/*.ts"
+npx tsx src/bin/cli.ts chat -p "Review this code for bugs" --provider chatgpt --file "src/**/*.ts"
 
 # Multi-provider fan-out (coming v0.2)
-# npx 10x-chat@latest chat -p "Review this PR" --providers chatgpt,gemini,claude --file "src/**"
+# npx tsx src/bin/cli.ts chat -p "Review this PR" --providers chatgpt,gemini,claude --file "src/**"
 
 # Dry run (preview the prompt bundle without sending)
-npx 10x-chat@latest chat --dry-run -p "Debug this error" --file src/
+npx tsx src/bin/cli.ts chat --dry-run -p "Debug this error" --file src/
 
 # Copy bundle to clipboard (manual paste fallback)
-npx 10x-chat@latest chat --copy -p "Explain this" --file "src/**"
+npx tsx src/bin/cli.ts chat --copy -p "Explain this" --file "src/**"
 
 # Check recent sessions
-npx 10x-chat@latest status
+npx tsx src/bin/cli.ts status
 
 # View a session's response
-npx 10x-chat@latest session <id> --render
+npx tsx src/bin/cli.ts session <id> --render
 
 # NotebookLM — manage notebooks & sources
-npx 10x-chat@latest notebooklm list                       # List notebooks
-npx 10x-chat@latest notebooklm create "My Research"        # Create notebook
-npx 10x-chat@latest notebooklm add-url <id> https://...    # Add URL source
-npx 10x-chat@latest notebooklm add-file <id> ./paper.pdf   # Upload file source
-npx 10x-chat@latest notebooklm sources <id>                # List sources
-npx 10x-chat@latest notebooklm summarize <id>              # AI summary
-npx 10x-chat@latest chat -p "Summarize" --provider notebooklm  # Chat with NotebookLM
+npx tsx src/bin/cli.ts notebooklm list                       # List notebooks
+npx tsx src/bin/cli.ts notebooklm create "My Research"       # Create notebook
+npx tsx src/bin/cli.ts notebooklm add-url <id> https://...   # Add URL source
+npx tsx src/bin/cli.ts notebooklm add-file <id> ./paper.pdf  # Upload file source
+npx tsx src/bin/cli.ts notebooklm sources <id>               # List sources
+npx tsx src/bin/cli.ts notebooklm summarize <id>             # AI summary
+npx tsx src/bin/cli.ts chat -p "Summarize" --provider notebooklm  # Chat with NotebookLM
 ```
 
 ## Tips
 
-- **Login first**: Run `npx 10x-chat@latest login <provider>` once per provider. The session persists.
+- **Run from source**: Use `npx tsx src/bin/cli.ts ...` under `~/tools/10x-chat-yuanbao` instead of npm `@latest`.
+- **Login first**: Run `npx tsx src/bin/cli.ts login <provider>` once per provider. The session persists.
 - **Keep file sets small**: fewer files + a focused prompt = better answers.
 - **Don't send secrets**: exclude `.env`, key files, auth tokens from `--file` patterns.
 - **Use `--dry-run`** to preview what will be sent before committing to a run.
