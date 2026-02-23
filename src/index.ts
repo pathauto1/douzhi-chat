@@ -7,6 +7,8 @@ export {
   getSession,
   listSessions,
 } from './session/index.js';
+export type { ErrorEvent, ErrorModule, StoredErrorEvent } from './telemetry/errors.js';
+export { classifyErrorType, listErrorEvents, recordErrorEvent } from './telemetry/errors.js';
 export type {
   AppConfig,
   CapturedResponse,

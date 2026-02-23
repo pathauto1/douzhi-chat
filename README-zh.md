@@ -81,12 +81,43 @@ npx douzhi-chat@latest status              # 最近 24 小時
 npx douzhi-chat@latest status --hours 72   # 最近 3 天
 ```
 
+### `sources`
+
+抓取引用來源頁面並提取核心內容（標題 + 去噪正文），同時過濾常見廣告與無關區塊。
+
+```bash
+npx douzhi-chat@latest sources --session <id>                   # 從既有 response.md 抽取 URL
+npx douzhi-chat@latest sources --from-file ~/.douzhi-chat/sessions/<id>/response.md
+npx douzhi-chat@latest sources --url https://example.com/a https://example.com/b
+npx douzhi-chat@latest sources --session <id> --output sources.json
+```
+
+| 參數 | 說明 |
+|------|------|
+| `--url <urls...>` | 引用連結列表 |
+| `--from-file <path>` | 從文字/Markdown 檔提取 URL |
+| `--session <id>` | 從已保存工作階段的回應中提取 URL |
+| `--concurrency <n>` | 並發抓取數（預設：`3`） |
+| `--timeout <ms>` | 單 URL 逾時（預設：`15000`） |
+| `--max-chars <n>` | 每篇文章最多保留字元（預設：`8000`） |
+| `--output <path>` | 將 JSON 結果寫入檔案 |
+
 ### `session <id>`
 
 檢視特定工作階段的詳細資訊。
 
 ```bash
 npx douzhi-chat@latest session <id> --render   # 格式化輸出回應
+```
+
+### `errors`
+
+查詢已記錄的執行錯誤樣本，用於排查與後續回放優化。
+
+```bash
+npx douzhi-chat@latest errors --last 30
+npx douzhi-chat@latest errors --module sources --error-type timeout
+npx douzhi-chat@latest errors --provider yuanbao --since-hours 24 --json
 ```
 
 ### `config`
@@ -155,6 +186,8 @@ npx douzhi-chat@latest chat -p "檢查這些檔案" --file "src/**/*.ts" "!src/*
 │       ├── meta.json     # 工作階段中繼資料
 │       ├── bundle.md     # 發送的提示打包
 │       └── response.md   # 擷取的回應
+├── errors/
+│   └── errors.jsonl      # 統一錯誤樣本，可用於回放測試與優化
 └── config.json           # 使用者設定
 ```
 

@@ -16,6 +16,11 @@ export interface ProviderConfig {
   displayName: string;
   url: string;
   loginUrl: string;
+  /**
+   * When true, runChat can automatically switch from headless to headed
+   * to let the user complete login, then switch back to headless.
+   */
+  autoHeadedLoginFallback?: boolean;
   models?: string[];
   defaultModel?: string;
   defaultTimeoutMs: number;

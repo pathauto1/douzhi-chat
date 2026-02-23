@@ -81,12 +81,43 @@ npx douzhi-chat@latest status              # Last 24 hours
 npx douzhi-chat@latest status --hours 72   # Last 3 days
 ```
 
+### `sources`
+
+Fetch citation pages and extract core article content (title + cleaned body), while filtering common ad/noise blocks.
+
+```bash
+npx douzhi-chat@latest sources --session <id>                   # Extract URLs from a saved response.md
+npx douzhi-chat@latest sources --from-file ~/.douzhi-chat/sessions/<id>/response.md
+npx douzhi-chat@latest sources --url https://example.com/a https://example.com/b
+npx douzhi-chat@latest sources --session <id> --output sources.json
+```
+
+| Flag | Description |
+|------|-------------|
+| `--url <urls...>` | Citation URL list |
+| `--from-file <path>` | Read URLs from text/markdown |
+| `--session <id>` | Read URLs from a saved chat session response |
+| `--concurrency <n>` | Concurrent fetches (default: `3`) |
+| `--timeout <ms>` | Per URL timeout (default: `15000`) |
+| `--max-chars <n>` | Max extracted chars per article (default: `8000`) |
+| `--output <path>` | Write JSON output to file |
+
 ### `session <id>`
 
 View details of a specific session.
 
 ```bash
 npx douzhi-chat@latest session <id> --render   # Pretty-print the response
+```
+
+### `errors`
+
+Query recorded runtime error samples for debugging and optimization replay.
+
+```bash
+npx douzhi-chat@latest errors --last 30
+npx douzhi-chat@latest errors --module sources --error-type timeout
+npx douzhi-chat@latest errors --provider yuanbao --since-hours 24 --json
 ```
 
 ### `config`
@@ -155,6 +186,8 @@ Security-sensitive files (`.env*`, `*.pem`, `*.key`, etc.) are automatically exc
 │       ├── meta.json     # Session metadata
 │       ├── bundle.md     # Prompt bundle sent
 │       └── response.md   # Captured response
+├── errors/
+│   └── errors.jsonl      # Unified runtime error samples for replay/optimization
 └── config.json           # User configuration
 ```
 

@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   getAppDir,
   getConfigPath,
+  getErrorsDir,
+  getErrorsLogPath,
   getProfileDir,
   getSessionDir,
   getSessionsDir,
@@ -52,5 +54,13 @@ describe('Paths', () => {
   it('should return config path', () => {
     delete process.env.DOUZHI_CHAT_HOME;
     expect(getConfigPath()).toBe(path.join(os.homedir(), '.douzhi-chat', 'config.json'));
+  });
+
+  it('should return errors dir and log path', () => {
+    delete process.env.DOUZHI_CHAT_HOME;
+    expect(getErrorsDir()).toBe(path.join(os.homedir(), '.douzhi-chat', 'errors'));
+    expect(getErrorsLogPath()).toBe(
+      path.join(os.homedir(), '.douzhi-chat', 'errors', 'errors.jsonl'),
+    );
   });
 });

@@ -27,3 +27,13 @@ export function getSessionDir(sessionId: string): string {
 export function getConfigPath(): string {
   return path.join(getAppDir(), 'config.json');
 }
+
+/** Error telemetry directory: ~/.douzhi-chat/errors */
+export function getErrorsDir(): string {
+  return path.join(getAppDir(), 'errors');
+}
+
+/** Error telemetry log path: ~/.douzhi-chat/errors/errors.jsonl */
+export function getErrorsLogPath(): string {
+  return path.join(getErrorsDir(), 'errors.jsonl');
+}

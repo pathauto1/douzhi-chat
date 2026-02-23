@@ -6,6 +6,7 @@ export const YUANBAO_CONFIG: ProviderConfig = {
   displayName: 'Yuanbao',
   url: 'https://yuanbao.tencent.com/',
   loginUrl: 'https://yuanbao.tencent.com/',
+  autoHeadedLoginFallback: true,
   defaultTimeoutMs: 5 * 60 * 1000,
 };
 
@@ -411,6 +412,21 @@ async function ensureInternetSearchManualAndEnabled(page: Page): Promise<void> {
 
   await searchToggle.waitFor({ state: 'visible', timeout: 12_000 });
 
+  const alreadyManualAndEnabled = await searchToggle
+    .evaluate((el) => {
+      const selfClass = (el as HTMLElement).className ?? '';
+      const parentClass = (el.parentElement as HTMLElement | null)?.className ?? '';
+      const text = (el.textContent ?? '').toLowerCase();
+      const enabled = /checked|active|selected/i.test(`${selfClass} ${parentClass}`);
+      const manual = /manual|手动/.test(text);
+      return enabled && manual;
+    })
+    .catch(() => false);
+
+  if (alreadyManualAndEnabled) {
+    return;
+  }
+
   let modeTrigger = searchToggle.locator(SELECTORS.internetSearchModeTrigger).first();
   if ((await modeTrigger.count()) === 0) {
     modeTrigger = page.locator(SELECTORS.internetSearchModeTrigger).last();
@@ -579,7 +595,7 @@ export const yuanbaoActions: ProviderActions = {
     let sawNewTurn = false;
 
     const STABLE_THRESHOLD = 2;
-    const POLL_INTERVAL = 1000;
+    const POLL_INTERVAL = 700;
 
     while (Date.now() - startTime < timeoutMs) {
       const current = await extractLatestTurnSnapshot(page);

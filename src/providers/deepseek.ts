@@ -6,6 +6,7 @@ export const DEEPSEEK_CONFIG: ProviderConfig = {
   displayName: 'DeepSeek',
   url: 'https://chat.deepseek.com/',
   loginUrl: 'https://chat.deepseek.com/',
+  autoHeadedLoginFallback: true,
   defaultTimeoutMs: 5 * 60 * 1000,
 };
 
@@ -495,8 +496,8 @@ export const deepseekActions: ProviderActions = {
     let lastStreamedAnswer = '';
     let stableCount = 0;
 
-    const STABLE_THRESHOLD = 3;
-    const POLL_INTERVAL = 1000;
+    const STABLE_THRESHOLD = 2;
+    const POLL_INTERVAL = 700;
 
     while (Date.now() - startTime < timeoutMs) {
       const current = await extractCurrentTurnSnapshot(page, prompt);

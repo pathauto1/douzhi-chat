@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import { launchBrowser } from '../browser/index.js';
 import { getProvider, isValidProvider, listProviders } from '../providers/index.js';
+import { recordErrorEvent } from '../telemetry/errors.js';
 import type { ProviderName } from '../types.js';
 
 export function createLoginCommand(): Command {
@@ -14,31 +15,44 @@ export function createLoginCommand(): Command {
     .option('--all', 'Login to all providers')
     .option('--status', 'Check login status for all providers')
     .action(async (providerArg?: string, options?: { all?: boolean; status?: boolean }) => {
-      if (options?.status) {
-        await checkLoginStatus();
-        return;
-      }
-
-      if (options?.all) {
-        for (const name of listProviders()) {
-          await loginToProvider(name);
+      try {
+        if (options?.status) {
+          await checkLoginStatus();
+          return;
         }
-        return;
-      }
 
-      if (!providerArg) {
-        console.log(chalk.yellow('Usage: douzhi-chat login <provider>'));
-        console.log(chalk.dim(`Available providers: ${listProviders().join(', ')}`));
-        return;
-      }
+        if (options?.all) {
+          for (const name of listProviders()) {
+            await loginToProvider(name);
+          }
+          return;
+        }
 
-      if (!isValidProvider(providerArg)) {
-        console.log(chalk.red(`Unknown provider: ${providerArg}`));
-        console.log(chalk.dim(`Available: ${listProviders().join(', ')}`));
-        process.exit(1);
-      }
+        if (!providerArg) {
+          console.log(chalk.yellow('Usage: douzhi-chat login <provider>'));
+          console.log(chalk.dim(`Available providers: ${listProviders().join(', ')}`));
+          return;
+        }
 
-      await loginToProvider(providerArg);
+        if (!isValidProvider(providerArg)) {
+          console.log(chalk.red(`Unknown provider: ${providerArg}`));
+          console.log(chalk.dim(`Available: ${listProviders().join(', ')}`));
+          process.exit(1);
+        }
+
+        await loginToProvider(providerArg);
+      } catch (error) {
+        await recordErrorEvent(
+          {
+            module: 'login',
+            stage: 'command_handler',
+            provider: providerArg,
+            message: error instanceof Error ? error.message : String(error),
+          },
+          error,
+        );
+        throw error;
+      }
     });
 
   return cmd;
@@ -49,16 +63,21 @@ async function loginToProvider(providerName: ProviderName): Promise<void> {
   console.log(chalk.blue(`Opening ${provider.config.displayName} for login...`));
   console.log(chalk.dim('Please login in the browser window. The session will be saved.'));
 
-  const browser = await launchBrowser({
-    provider: providerName,
-    headless: false, // Always headed for login
-    url: provider.config.loginUrl,
-  });
+  let browser: Awaited<ReturnType<typeof launchBrowser>> | null = null;
+  let stage = 'launch_browser_for_login';
+  const startedAt = Date.now();
 
   try {
+    browser = await launchBrowser({
+      provider: providerName,
+      headless: false, // Always headed for login
+      url: provider.config.loginUrl,
+    });
+
     // Wait for the user to login — poll until logged in or timeout
     const timeoutMs = 5 * 60 * 1000; // 5 minutes to login
     const startTime = Date.now();
+    stage = 'wait_for_user_login';
 
     while (Date.now() - startTime < timeoutMs) {
       const loggedIn = await provider.actions.isLoggedIn(browser.page);
@@ -70,8 +89,30 @@ async function loginToProvider(providerName: ProviderName): Promise<void> {
     }
 
     console.log(chalk.yellow('Login timed out. You can try again.'));
+    await recordErrorEvent({
+      module: 'login',
+      stage: 'wait_for_user_login',
+      provider: providerName,
+      durationMs: Date.now() - startedAt,
+      message: `Login timed out for ${provider.config.displayName}`,
+      errorType: 'timeout',
+    });
+  } catch (error) {
+    await recordErrorEvent(
+      {
+        module: 'login',
+        stage,
+        provider: providerName,
+        durationMs: Date.now() - startedAt,
+        message: error instanceof Error ? error.message : String(error),
+      },
+      error,
+    );
+    throw error;
   } finally {
-    await browser.close();
+    if (browser) {
+      await browser.close();
+    }
   }
 }
 
@@ -97,6 +138,12 @@ async function checkLoginStatus(): Promise<void> {
         await browser.close();
       }
     } catch {
+      await recordErrorEvent({
+        module: 'status',
+        stage: 'provider_login_status_check',
+        provider: name,
+        message: `Unable to check login status for ${provider.config.displayName}`,
+      });
       console.log(`  ${provider.config.displayName}: ${chalk.dim('unable to check')}`);
     }
   }
