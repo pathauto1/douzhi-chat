@@ -1,7 +1,7 @@
 {
   "name": "douzhi-chat",
-  "version": "0.3.8",
-  "description": "CLI to chat with web AI agents (ChatGPT, Gemini, Claude, Grok, NotebookLM, Yuanbao) via browser automation",
+  "version": "0.4.0",
+  "description": "CLI to chat with web AI agents (ChatGPT, Gemini, Claude, Grok, NotebookLM, Yuanbao, DeepSeek) via browser automation",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -42,6 +42,7 @@
     "grok",
     "notebooklm",
     "yuanbao",
+    "deepseek",
     "cli",
     "browser-automation",
     "playwright"

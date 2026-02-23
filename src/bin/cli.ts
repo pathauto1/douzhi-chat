@@ -14,7 +14,7 @@ const program = new Command();
 program
   .name('douzhi-chat')
   .description(
-    'Chat with web AI agents (ChatGPT, Gemini, Claude, Grok, NotebookLM, Yuanbao) via browser automation',
+    'Chat with web AI agents (ChatGPT, Gemini, Claude, Grok, NotebookLM, Yuanbao, DeepSeek) via browser automation',
   )
   .version('0.1.0');
 
