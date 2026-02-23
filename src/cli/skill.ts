@@ -9,15 +9,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function getSkillSourceDir(): string {
   // Navigate from src/cli/ or dist/cli/ up to project root, then into skills/
-  return path.resolve(__dirname, '..', '..', 'skills', 'pathauto-ai-web');
+  return path.resolve(__dirname, '..', '..', 'skills', 'douzhi-chat');
 }
 
 function getSkillTargetDir(): string {
-  return path.join(os.homedir(), '.codex', 'skills', 'pathauto-ai-web');
+  return path.join(os.homedir(), '.codex', 'skills', 'douzhi-chat');
 }
 
 export function createSkillCommand(): Command {
-  const cmd = new Command('skill').description('Manage the pathauto-ai-web agent skill');
+  const cmd = new Command('skill').description('Manage the douzhi-chat agent skill');
 
   cmd
     .command('install')

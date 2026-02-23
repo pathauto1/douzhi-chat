@@ -67,7 +67,7 @@ export async function runChat(options: ChatOptions): Promise<ChatResult> {
     const loggedIn = await provider.actions.isLoggedIn(browser.page);
     if (!loggedIn) {
       throw new Error(
-        `Not logged in to ${provider.config.displayName}. Run: 10x-chat login ${providerName}`,
+        `Not logged in to ${provider.config.displayName}. Run: douzhi-chat login ${providerName}`,
       );
     }
 

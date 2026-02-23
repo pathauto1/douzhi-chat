@@ -1,5 +1,5 @@
 {
-  "name": "10x-chat",
+  "name": "douzhi-chat",
   "version": "0.3.8",
   "description": "CLI to chat with web AI agents (ChatGPT, Gemini, Claude, Grok, NotebookLM, Yuanbao) via browser automation",
   "type": "module",
@@ -12,7 +12,7 @@
     }
   },
   "bin": {
-    "10x-chat": "dist/bin/cli.js"
+    "douzhi-chat": "dist/bin/cli.js"
   },
   "files": [
     "dist",
@@ -49,11 +49,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/RealMikeChong/10x-chat.git"
+    "url": "https://github.com/pathauto1/douzhi-chat.git"
   },
-  "homepage": "https://github.com/RealMikeChong/10x-chat#readme",
+  "homepage": "https://github.com/pathauto1/douzhi-chat#readme",
   "bugs": {
-    "url": "https://github.com/RealMikeChong/10x-chat/issues"
+    "url": "https://github.com/pathauto1/douzhi-chat/issues"
   },
   "publishConfig": {
     "access": "public"

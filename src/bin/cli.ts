@@ -12,7 +12,7 @@ import { createSessionCommand, createStatusCommand } from '../cli/status.js';
 const program = new Command();
 
 program
-  .name('10x-chat')
+  .name('douzhi-chat')
   .description(
     'Chat with web AI agents (ChatGPT, Gemini, Claude, Grok, NotebookLM, Yuanbao) via browser automation',
   )

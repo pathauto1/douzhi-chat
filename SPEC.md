@@ -1,4 +1,4 @@
-# 10x-chat — Project Specification
+# douzhi-chat — Project Specification
 
 > A TypeScript CLI that uses Playwright to open a browser, lets the user login with a **persisted Chrome profile**, then programmatically chats with web-based AI agents (ChatGPT, Gemini, Claude, etc.).
 
@@ -12,7 +12,7 @@ Today an AI-coding agent (Codex, Claude Code, Cursor) is locked into a single mo
 2. Copy-paste context (files, error logs).
 3. Wait, then copy the answer back.
 
-**10x-chat** automates this loop: one CLI command bundles context, opens the provider's web UI in a logged-in browser, submits the prompt, and streams the response back to the terminal (or to the calling agent).
+**douzhi-chat** automates this loop: one CLI command bundles context, opens the provider's web UI in a logged-in browser, submits the prompt, and streams the response back to the terminal (or to the calling agent).
 
 ---
 
@@ -39,7 +39,7 @@ Today an AI-coding agent (Codex, Claude Code, Cursor) is locked into a single mo
 | Profile locking | `profileState.ts` — file locks to serialize parallel runs on same profile | ✅ Adopt — file-based lock per provider profile |
 | Prompt submission | DOM interaction: find composer textarea, paste markdown, click send | ✅ Adopt pattern — provider-specific page actions |
 | Response capture | Poll DOM for assistant turn elements, extract text/markdown, timeout + reattach | ✅ Adopt pattern — poll for response with configurable timeout |
-| Session management | `~/.oracle/sessions/<id>/` with metadata + logs | ✅ Adopt — `~/.10x-chat/sessions/` |
+| Session management | `~/.oracle/sessions/<id>/` with metadata + logs | ✅ Adopt — `~/.douzhi-chat/sessions/` |
 | CLI structure | Commander with subcommands (`oracle status`, `oracle session`) | ✅ Adopt |
 | Multi-model | `--models` flag sends to multiple APIs in parallel | ✅ Adapt for browser-based multi-provider |
 
@@ -47,11 +47,11 @@ Today an AI-coding agent (Codex, Claude Code, Cursor) is locked into a single mo
 
 | What | How it does it | What we take |
 |------|---------------|--------------|
-| Auth | Playwright opens Chromium, user logs into Google, cookies saved to `storageState.json` | ✅ Core pattern — `10x-chat login <provider>` uses Playwright persistent context |
+| Auth | Playwright opens Chromium, user logs into Google, cookies saved to `storageState.json` | ✅ Core pattern — `douzhi-chat login <provider>` uses Playwright persistent context |
 | Layered arch | CLI → Client → Core → RPC | ✅ Adopt layered design |
-| Skill install | `notebooklm skill install` copies SKILL.md to agent dir | ✅ Adopt — `10x-chat skill install` |
+| Skill install | `notebooklm skill install` copies SKILL.md to agent dir | ✅ Adopt — `douzhi-chat skill install` |
 
-### 3.3 From 10xwise-chat
+### 3.3 From Prior Multi-Provider CLI Designs
 
 | What | How it does it | What we take |
 |------|---------------|--------------|
@@ -90,7 +90,7 @@ Today an AI-coding agent (Codex, Claude Code, Cursor) is locked into a single mo
 │          Browser Manager            │  Playwright lifecycle,
 │  (launch / persist / lock / close)  │  profile management
 ├─────────────────────────────────────┤
-│          Session Store              │  ~/.10x-chat/sessions/
+│          Session Store              │  ~/.douzhi-chat/sessions/
 │  (logs, metadata, responses)        │
 └─────────────────────────────────────┘
 ```
@@ -103,7 +103,7 @@ Today an AI-coding agent (Codex, Claude Code, Cursor) is locked into a single mo
 
 | File | Responsibility |
 |------|---------------|
-| `manager.ts` | Launch/reuse Playwright persistent context per provider. Profile directory: `~/.10x-chat/profiles/<provider>/`. |
+| `manager.ts` | Launch/reuse Playwright persistent context per provider. Profile directory: `~/.douzhi-chat/profiles/<provider>/`. |
 | `lock.ts` | File-based lock to prevent parallel use of same profile (from Oracle's `profileState.ts`). |
 
 ### 6.2 `src/providers/`
@@ -140,12 +140,12 @@ interface Provider {
 
 | File | Command | Description |
 |------|---------|-------------|
-| `login.ts` | `10x-chat login <provider>` | Opens browser for user to login. Saves persistent profile. |
-| `chat.ts` | `10x-chat chat -p "prompt" --provider chatgpt` | Submits prompt, captures response. |
-| `status.ts` | `10x-chat status` | Lists active/recent sessions. |
-| `session.ts` | `10x-chat session <id>` | Replays/reattaches to a session. |
-| `config.ts` | `10x-chat config` | Shows/sets defaults (default provider, model, timeout). |
-| `skill.ts` | `10x-chat skill install` | Installs SKILL.md into agent skills directory. |
+| `login.ts` | `douzhi-chat login <provider>` | Opens browser for user to login. Saves persistent profile. |
+| `chat.ts` | `douzhi-chat chat -p "prompt" --provider chatgpt` | Submits prompt, captures response. |
+| `status.ts` | `douzhi-chat status` | Lists active/recent sessions. |
+| `session.ts` | `douzhi-chat session <id>` | Replays/reattaches to a session. |
+| `config.ts` | `douzhi-chat config` | Shows/sets defaults (default provider, model, timeout). |
+| `skill.ts` | `douzhi-chat skill install` | Installs SKILL.md into agent skills directory. |
 
 ### 6.4 `src/core/`
 
@@ -153,13 +153,13 @@ interface Provider {
 |------|---------------|
 | `orchestrator.ts` | Takes user prompt + files, resolves provider, manages session lifecycle. |
 | `bundle.ts` | Assembles markdown bundle from prompt + file paths (like Oracle). |
-| `config.ts` | Loads/saves `~/.10x-chat/config.json` (JSON5). |
+| `config.ts` | Loads/saves `~/.douzhi-chat/config.json` (JSON5). |
 
 ### 6.5 `src/session/`
 
 | File | Responsibility |
 |------|---------------|
-| `store.ts` | CRUD for sessions in `~/.10x-chat/sessions/<id>/`. |
+| `store.ts` | CRUD for sessions in `~/.douzhi-chat/sessions/<id>/`. |
 | `types.ts` | `Session`, `SessionStatus`, `SessionResult` types. |
 
 ---
@@ -170,13 +170,13 @@ interface Provider {
 
 ```bash
 # Opens browser for ChatGPT login. Profile persisted for future runs.
-10x-chat login chatgpt
+douzhi-chat login chatgpt
 
 # Login to all providers
-10x-chat login --all
+douzhi-chat login --all
 
 # Check login status
-10x-chat login --status
+douzhi-chat login --status
 ```
 
 **Flow:**
@@ -190,22 +190,22 @@ interface Provider {
 
 ```bash
 # Basic prompt
-10x-chat chat -p "Review this code for bugs"
+douzhi-chat chat -p "Review this code for bugs"
 
 # With files
-10x-chat chat -p "Explain the architecture" --file "src/**/*.ts"
+douzhi-chat chat -p "Explain the architecture" --file "src/**/*.ts"
 
 # Specific provider and model
-10x-chat chat -p "Fix this error" --provider chatgpt --model "GPT-4o" --file src/index.ts
+douzhi-chat chat -p "Fix this error" --provider chatgpt --model "GPT-4o" --file src/index.ts
 
 # Multi-provider (fan-out to all, show all responses)
-10x-chat chat -p "Review this PR" --providers chatgpt,gemini,claude --file "src/**"
+douzhi-chat chat -p "Review this PR" --providers chatgpt,gemini,claude --file "src/**"
 
 # Copy bundle to clipboard instead (manual paste fallback)
-10x-chat chat -p "Debug this" --copy --file src/
+douzhi-chat chat -p "Debug this" --copy --file src/
 
 # Dry run (preview bundle, no browser)
-10x-chat chat --dry-run -p "test" --file src/
+douzhi-chat chat --dry-run -p "test" --file src/
 ```
 
 **Flow:**
@@ -225,26 +225,26 @@ interface Provider {
 ### `status` / `session`
 
 ```bash
-10x-chat status                    # Last 24h sessions
-10x-chat status --hours 72         # Last 72h
-10x-chat session <id>              # View session details
-10x-chat session <id> --render     # Pretty-print response
+douzhi-chat status                    # Last 24h sessions
+douzhi-chat status --hours 72         # Last 72h
+douzhi-chat session <id>              # View session details
+douzhi-chat session <id> --render     # Pretty-print response
 ```
 
 ### `config`
 
 ```bash
-10x-chat config                          # Show current config
-10x-chat config set provider chatgpt     # Default provider
-10x-chat config set model "GPT-4o"       # Default model
-10x-chat config set timeout 5m           # Default response timeout
+douzhi-chat config                          # Show current config
+douzhi-chat config set provider chatgpt     # Default provider
+douzhi-chat config set model "GPT-4o"       # Default model
+douzhi-chat config set timeout 5m           # Default response timeout
 ```
 
 ### `skill`
 
 ```bash
-10x-chat skill install         # Install SKILL.md to ~/.codex/skills/10x-chat/
-10x-chat skill show            # Print SKILL.md contents
+douzhi-chat skill install         # Install SKILL.md to ~/.codex/skills/douzhi-chat/
+douzhi-chat skill show            # Print SKILL.md contents
 ```
 
 ---
@@ -252,7 +252,7 @@ interface Provider {
 ## 8 · Data Layout
 
 ```
-~/.10x-chat/
+~/.douzhi-chat/
 ├── config.json                    # User preferences (JSON5)
 ├── profiles/
 │   ├── chatgpt/                   # Playwright persistent context
@@ -366,16 +366,16 @@ export interface CapturedResponse {
 
 ## 12 · SKILL.md (for AI Agents)
 
-The installed SKILL.md will instruct agent tools (Codex, Claude Code) how to use 10x-chat:
+The installed SKILL.md will instruct agent tools (Codex, Claude Code) how to use douzhi-chat:
 
 ```markdown
 ---
-name: 10x-chat
+name: douzhi-chat
 description: Chat with web AI agents (ChatGPT, Gemini, Claude) via browser automation.
              Use when stuck, need cross-validation, or want a second-model review.
 ---
 
-# 10x-chat — AI Agent Skill
+# douzhi-chat — AI Agent Skill
 
 ## When to use
 - Stuck on a bug: ask another model for a fresh perspective.
@@ -383,12 +383,12 @@ description: Chat with web AI agents (ChatGPT, Gemini, Claude) via browser autom
 - Cross-validation: compare answers from multiple models.
 
 ## Commands
-- `npx 10x-chat chat -p "<prompt>" --file "src/**" --provider chatgpt`
-- `npx 10x-chat chat -p "<prompt>" --providers chatgpt,gemini --file "src/**"`
-- `npx 10x-chat status` — check recent sessions.
+- `npx douzhi-chat chat -p "<prompt>" --file "src/**" --provider chatgpt`
+- `npx douzhi-chat chat -p "<prompt>" --providers chatgpt,gemini --file "src/**"`
+- `npx douzhi-chat status` — check recent sessions.
 
 ## Tips
-- Login first: `npx 10x-chat login chatgpt` (one-time, persistent).
+- Login first: `npx douzhi-chat login chatgpt` (one-time, persistent).
 - Use `--dry-run` to preview the bundle before sending.
 - Keep file sets small; fewer files + better prompt = better answers.
 - Don't send secrets.
@@ -423,7 +423,7 @@ description: Chat with web AI agents (ChatGPT, Gemini, Claude) via browser autom
 - [ ] `session` command (replay/reattach)
 
 ### v0.4 — Polish
-- [ ] MCP server mode (`10x-chat mcp`)
+- [ ] MCP server mode (`douzhi-chat mcp`)
 - [ ] Model selection per provider
 - [ ] Streaming response display
 - [ ] Auto-reattach for long-running responses
@@ -434,7 +434,7 @@ description: Chat with web AI agents (ChatGPT, Gemini, Claude) via browser autom
 
 ## 14 · Open Questions
 
-1. **Package name**: `10x-chat`, `tenchat`, `@10xwise/chat`? Namespace?
+1. **Package name**: `douzhi-chat`, `douzhi`, `@douzhi/chat`? Namespace?
 2. **Playwright Chromium vs system Chrome**: Playwright downloads its own Chromium. Should we support the user's existing Chrome? (Playwright can attach via CDP, but persistent context is Playwright-only.)
 3. **File attachments**: Some providers (ChatGPT, Gemini) support file upload via the web UI. Do we support drag-and-drop file upload in v1, or only inline markdown bundles?
 4. **Rate limiting**: Web UIs have implicit rate limits. How aggressive should retry be?

@@ -140,9 +140,9 @@ function getProfileDir(): string {
     return process.env.NOTEBOOKLM_PROFILE_DIR;
   }
 
-  const home = process.env.TEN_X_CHAT_HOME
-    ? process.env.TEN_X_CHAT_HOME.replace(/^~(?=$|[/])/, process.env.HOME ?? '')
-    : path.join(process.env.HOME ?? '', '.10x-chat');
+  const home = process.env.DOUZHI_CHAT_HOME
+    ? process.env.DOUZHI_CHAT_HOME.replace(/^~(?=$|[/])/, process.env.HOME ?? '')
+    : path.join(process.env.HOME ?? '', '.douzhi-chat');
 
   // Prefer the notebooklm profile (created by `login notebooklm`),
   // fall back to gemini profile (shared Google auth)
@@ -237,7 +237,7 @@ export function extractCookiesFromStorage(
     if (googleDomains.length > 0) {
       parts.push(`Google domains in storage: ${googleDomains.join(', ')}`);
     }
-    parts.push('Re-authenticate Gemini profile if needed (10x-chat login gemini).');
+    parts.push('Re-authenticate Gemini profile if needed (douzhi-chat login gemini).');
 
     throw new ConfigurationError(parts.join('\n'));
   }

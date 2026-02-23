@@ -27,7 +27,7 @@ export function createLoginCommand(): Command {
       }
 
       if (!providerArg) {
-        console.log(chalk.yellow('Usage: 10x-chat login <provider>'));
+        console.log(chalk.yellow('Usage: douzhi-chat login <provider>'));
         console.log(chalk.dim(`Available providers: ${listProviders().join(', ')}`));
         return;
       }

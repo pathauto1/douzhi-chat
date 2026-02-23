@@ -1,17 +1,17 @@
-# 10x-chat
+# douzhi-chat
 
 > Chat with web AI agents (ChatGPT, Gemini, Claude, Grok, NotebookLM) from your terminal via browser automation.
 
 **English** | [繁體中文](./README-zh.md)
 
-10x-chat uses [Playwright](https://playwright.dev) to automate browser sessions with persisted login profiles. Login once, then send prompts — bundled with file context — from your CLI or AI coding agent.
+douzhi-chat uses [Playwright](https://playwright.dev) to automate browser sessions with persisted login profiles. Login once, then send prompts — bundled with file context — from your CLI or AI coding agent.
 
 ## Use with OpenClaw
 
 Paste this into your [OpenClaw](https://openclaw.ai) chat to install as a skill:
 
 ```
-https://raw.githubusercontent.com/RealMikeChong/10x-chat/refs/heads/main/skills/10x-chat/SKILL.md
+https://raw.githubusercontent.com/<your-github-user>/<your-repo>/main/skills/douzhi-chat/SKILL.md
 ```
 
 ## Quick Start
@@ -20,13 +20,13 @@ https://raw.githubusercontent.com/RealMikeChong/10x-chat/refs/heads/main/skills/
 npx playwright install chromium  # one-time browser setup
 
 # 1. Login to a provider (opens a browser window)
-npx 10x-chat@latest login chatgpt
+npx douzhi-chat@latest login chatgpt
 
 # 2. Send a prompt
-npx 10x-chat@latest chat -p "Explain this error" --provider chatgpt --file "src/**/*.ts"
+npx douzhi-chat@latest chat -p "Explain this error" --provider chatgpt --file "src/**/*.ts"
 
 # 3. View session history
-npx 10x-chat@latest status
+npx douzhi-chat@latest status
 ```
 
 > [!TIP]
@@ -39,13 +39,13 @@ npx 10x-chat@latest status
 Opens a headed browser for you to authenticate. The session persists across runs.
 
 ```bash
-npx 10x-chat@latest login chatgpt       # Login to ChatGPT
-npx 10x-chat@latest login gemini         # Login to Gemini
-npx 10x-chat@latest login claude         # Login to Claude
-npx 10x-chat@latest login grok           # Login to Grok
-npx 10x-chat@latest login notebooklm     # Login to NotebookLM
-npx 10x-chat@latest login yuanbao        # Login to Yuanbao
-npx 10x-chat@latest login --status       # Check login status for all providers
+npx douzhi-chat@latest login chatgpt       # Login to ChatGPT
+npx douzhi-chat@latest login gemini         # Login to Gemini
+npx douzhi-chat@latest login claude         # Login to Claude
+npx douzhi-chat@latest login grok           # Login to Grok
+npx douzhi-chat@latest login notebooklm     # Login to NotebookLM
+npx douzhi-chat@latest login yuanbao        # Login to Yuanbao
+npx douzhi-chat@latest login --status       # Check login status for all providers
 ```
 
 ### `chat`
@@ -53,11 +53,11 @@ npx 10x-chat@latest login --status       # Check login status for all providers
 Send a prompt to an AI provider via browser automation.
 
 ```bash
-npx 10x-chat@latest chat -p "Review this code for bugs" --provider chatgpt --file "src/**/*.ts"
-npx 10x-chat@latest chat -p "Debug this error" --file "logs/error.log"
-npx 10x-chat@latest chat -p "Explain this" --dry-run              # Preview bundle without sending
-npx 10x-chat@latest chat -p "Explain this" --copy                  # Copy bundle to clipboard
-npx 10x-chat@latest chat -p "Long task" --timeout 600000 --headed  # 10min timeout, visible browser
+npx douzhi-chat@latest chat -p "Review this code for bugs" --provider chatgpt --file "src/**/*.ts"
+npx douzhi-chat@latest chat -p "Debug this error" --file "logs/error.log"
+npx douzhi-chat@latest chat -p "Explain this" --dry-run              # Preview bundle without sending
+npx douzhi-chat@latest chat -p "Explain this" --copy                  # Copy bundle to clipboard
+npx douzhi-chat@latest chat -p "Long task" --timeout 600000 --headed  # 10min timeout, visible browser
 ```
 
 | Flag | Description |
@@ -76,8 +76,8 @@ npx 10x-chat@latest chat -p "Long task" --timeout 600000 --headed  # 10min timeo
 List recent chat sessions.
 
 ```bash
-npx 10x-chat@latest status              # Last 24 hours
-npx 10x-chat@latest status --hours 72   # Last 3 days
+npx douzhi-chat@latest status              # Last 24 hours
+npx douzhi-chat@latest status --hours 72   # Last 3 days
 ```
 
 ### `session <id>`
@@ -85,7 +85,7 @@ npx 10x-chat@latest status --hours 72   # Last 3 days
 View details of a specific session.
 
 ```bash
-npx 10x-chat@latest session <id> --render   # Pretty-print the response
+npx douzhi-chat@latest session <id> --render   # Pretty-print the response
 ```
 
 ### `config`
@@ -93,10 +93,10 @@ npx 10x-chat@latest session <id> --render   # Pretty-print the response
 View or modify configuration.
 
 ```bash
-npx 10x-chat@latest config show
-npx 10x-chat@latest config set provider gemini
-npx 10x-chat@latest config set timeout 600000
-npx 10x-chat@latest config set headless false
+npx douzhi-chat@latest config show
+npx douzhi-chat@latest config set provider gemini
+npx douzhi-chat@latest config set timeout 600000
+npx douzhi-chat@latest config set headless false
 ```
 
 ### `skill`
@@ -104,8 +104,8 @@ npx 10x-chat@latest config set headless false
 Manage the agent integration skill (for Codex, Claude Code, etc).
 
 ```bash
-npx 10x-chat@latest skill install   # Install SKILL.md to ~/.codex/skills/
-npx 10x-chat@latest skill show      # Display SKILL.md content
+npx douzhi-chat@latest skill install   # Install SKILL.md to ~/.codex/skills/
+npx douzhi-chat@latest skill show      # Display SKILL.md content
 ```
 
 ### `notebooklm` (alias: `nb`)
@@ -113,18 +113,18 @@ npx 10x-chat@latest skill show      # Display SKILL.md content
 Manage NotebookLM notebooks and sources via RPC API.
 
 ```bash
-npx 10x-chat@latest notebooklm list                              # List all notebooks
-npx 10x-chat@latest notebooklm create "Research Topic"            # Create a notebook
-npx 10x-chat@latest notebooklm delete <notebookId>                # Delete a notebook
-npx 10x-chat@latest notebooklm sources <notebookId>               # List sources in notebook
-npx 10x-chat@latest notebooklm add-url <notebookId> <url>         # Add URL source
-npx 10x-chat@latest notebooklm add-url <notebookId> <url> --wait  # Add URL and wait for processing
-npx 10x-chat@latest notebooklm add-file <notebookId> ./paper.pdf  # Upload file source
-npx 10x-chat@latest notebooklm add-text <id> "Title" "Content"    # Add pasted text source
-npx 10x-chat@latest notebooklm summarize <notebookId>             # AI summary + suggested topics
+npx douzhi-chat@latest notebooklm list                              # List all notebooks
+npx douzhi-chat@latest notebooklm create "Research Topic"            # Create a notebook
+npx douzhi-chat@latest notebooklm delete <notebookId>                # Delete a notebook
+npx douzhi-chat@latest notebooklm sources <notebookId>               # List sources in notebook
+npx douzhi-chat@latest notebooklm add-url <notebookId> <url>         # Add URL source
+npx douzhi-chat@latest notebooklm add-url <notebookId> <url> --wait  # Add URL and wait for processing
+npx douzhi-chat@latest notebooklm add-file <notebookId> ./paper.pdf  # Upload file source
+npx douzhi-chat@latest notebooklm add-text <id> "Title" "Content"    # Add pasted text source
+npx douzhi-chat@latest notebooklm summarize <notebookId>             # AI summary + suggested topics
 
 # Then chat with the notebook's sources:
-npx 10x-chat@latest chat -p "Summarize key points" --provider notebooklm
+npx douzhi-chat@latest chat -p "Summarize key points" --provider notebooklm
 ```
 
 ## File Bundling
@@ -132,7 +132,7 @@ npx 10x-chat@latest chat -p "Summarize key points" --provider notebooklm
 The `--file` flag accepts globs. Files are assembled into a markdown bundle sent as the prompt:
 
 ```bash
-npx 10x-chat@latest chat -p "Review these" --file "src/**/*.ts" "!src/**/*.test.ts"
+npx douzhi-chat@latest chat -p "Review these" --file "src/**/*.ts" "!src/**/*.test.ts"
 ```
 
 Security-sensitive files (`.env*`, `*.pem`, `*.key`, etc.) are automatically excluded.
@@ -140,7 +140,7 @@ Security-sensitive files (`.env*`, `*.pem`, `*.key`, etc.) are automatically exc
 ## Data Layout
 
 ```
-~/.10x-chat/
+~/.douzhi-chat/
 ├── profiles/
 │   ├── chatgpt/          # Playwright persistent browser profile
 │   ├── gemini/
@@ -158,13 +158,13 @@ Security-sensitive files (`.env*`, `*.pem`, `*.key`, etc.) are automatically exc
 
 ## Agent Integration
 
-10x-chat includes a `SKILL.md` for AI coding agents. Install it with:
+douzhi-chat includes a `SKILL.md` for AI coding agents. Install it with:
 
 ```bash
-npx 10x-chat@latest skill install
+npx douzhi-chat@latest skill install
 ```
 
-This lets agents like Codex or Claude Code use 10x-chat to query other models for cross-validation, code review, or debugging help.
+This lets agents like Codex or Claude Code use douzhi-chat to query other models for cross-validation, code review, or debugging help.
 
 ## Supported Providers
 

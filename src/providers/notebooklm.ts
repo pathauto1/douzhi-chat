@@ -35,7 +35,7 @@ function getClient(): Promise<NotebookLMClient> {
 
 /**
  * Get (or create) a notebook to use for this chat session.
- * Uses the most recently accessed notebook, or creates a "10x-chat" notebook.
+ * Uses the most recently accessed notebook, or creates a "douzhi-chat" notebook.
  */
 async function ensureNotebook(client: NotebookLMClient): Promise<string> {
   if (cachedNotebookId) {
@@ -51,7 +51,7 @@ async function ensureNotebook(client: NotebookLMClient): Promise<string> {
   }
 
   // Create a default notebook
-  const nb = await client.notebooks.create('10x-chat');
+  const nb = await client.notebooks.create('douzhi-chat');
   cachedNotebookId = nb.id;
   return cachedNotebookId;
 }

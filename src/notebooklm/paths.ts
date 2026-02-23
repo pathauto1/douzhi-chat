@@ -7,7 +7,7 @@ const NOTEBOOKLM_DIR_NAME = 'notebooklm';
 /**
  * NotebookLM home directory.
  *
- * Precedence: `NOTEBOOKLM_HOME` env var > `~/.10x-chat/notebooklm`
+ * Precedence: `NOTEBOOKLM_HOME` env var > `~/.douzhi-chat/notebooklm`
  */
 export function getHomeDir(create = false): string {
   const configured = process.env.NOTEBOOKLM_HOME;
@@ -47,7 +47,7 @@ export function getPathInfo(): Record<string, string> {
   const homeFromEnv = process.env.NOTEBOOKLM_HOME;
   return {
     homeDir: getHomeDir(),
-    homeSource: homeFromEnv ? 'NOTEBOOKLM_HOME' : 'default (~/.10x-chat/notebooklm)',
+    homeSource: homeFromEnv ? 'NOTEBOOKLM_HOME' : 'default (~/.douzhi-chat/notebooklm)',
     storagePath: getStoragePath(),
     contextPath: getContextPath(),
     configPath: getConfigPath(),

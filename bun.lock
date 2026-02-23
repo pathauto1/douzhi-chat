@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "10x-chat",
+      "name": "douzhi-chat",
       "dependencies": {
         "chalk": "^5.4.1",
         "clipboardy": "^4.0.0",

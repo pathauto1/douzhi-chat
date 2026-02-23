@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-const LOCK_FILENAME = '10x-chat.lock';
+const LOCK_FILENAME = 'douzhi-chat.lock';
 
 interface LockRecord {
   pid: number;
@@ -105,6 +105,6 @@ export async function acquireProfileLock(
 
   throw new Error(
     `Failed to acquire profile lock at ${lockPath} within ${timeoutMs}ms. ` +
-      'Another 10x-chat session may be using this profile.',
+      'Another douzhi-chat session may be using this profile.',
   );
 }

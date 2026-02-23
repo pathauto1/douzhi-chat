@@ -73,7 +73,7 @@ export const geminiActions: ProviderActions = {
     const isSignedIn = await page.evaluate(() => !document.querySelector('.sign-in-button'));
     if (!isSignedIn) {
       throw new Error(
-        'Gemini file upload requires a signed-in Google account. Run `10x-chat login --provider gemini` to authenticate.',
+        'Gemini file upload requires a signed-in Google account. Run `douzhi-chat login --provider gemini` to authenticate.',
       );
     }
 
