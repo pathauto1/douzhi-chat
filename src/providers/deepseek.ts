@@ -49,10 +49,28 @@ interface DeepseekTurnSnapshot {
   answerText: string;
   sourceCount: number;
   citationIds: string[];
+  sourceLinks: Array<{
+    href: string;
+    text: string;
+    citationId: string;
+  }>;
 }
 
 function deepseekTurnSignature(turn: DeepseekTurnSnapshot): string {
-  return [turn.answerText, String(turn.sourceCount), turn.citationIds.join(',')].join('\n---\n');
+  const sourceDigest = turn.sourceLinks
+    .map((source) => `${source.citationId}:${source.href}`)
+    .join('|');
+  return [turn.answerText, String(turn.sourceCount), turn.citationIds.join(','), sourceDigest].join(
+    '\n---\n',
+  );
+}
+
+function getDomain(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./i, '');
+  } catch {
+    return url;
+  }
 }
 
 function formatStructuredResponse(turn: DeepseekTurnSnapshot): { text: string; markdown: string } {
@@ -65,8 +83,49 @@ function formatStructuredResponse(turn: DeepseekTurnSnapshot): { text: string; m
   lines.push('');
   lines.push('## Sources');
 
-  if (turn.sourceCount > 0) {
-    lines.push(`Web pages referenced: ${turn.sourceCount}`);
+  const dedupSources = new Map<
+    string,
+    {
+      href: string;
+      domain: string;
+      citations: Set<string>;
+    }
+  >();
+
+  for (const source of turn.sourceLinks) {
+    const key = source.href;
+    if (!dedupSources.has(key)) {
+      dedupSources.set(key, {
+        href: source.href,
+        domain: getDomain(source.href),
+        citations: new Set(),
+      });
+    }
+    if (source.citationId) {
+      dedupSources.get(key)?.citations.add(source.citationId);
+    }
+  }
+
+  const sources = Array.from(dedupSources.values());
+  const displayedSources = sources.slice(0, 20);
+  const totalSourceCount = turn.sourceCount > 0 ? turn.sourceCount : sources.length;
+
+  if (totalSourceCount > 0) {
+    lines.push(`Web pages referenced: ${totalSourceCount}`);
+    for (let i = 0; i < displayedSources.length; i++) {
+      const source = displayedSources[i];
+      const citationTag =
+        source.citations.size > 0
+          ? `[${Array.from(source.citations)
+              .sort((a, b) => Number(a) - Number(b))
+              .join(',')}] `
+          : '';
+      lines.push(`${i + 1}. ${citationTag}${source.domain}`);
+      lines.push(`   ${source.href}`);
+    }
+    if (sources.length > displayedSources.length) {
+      lines.push(`... and ${sources.length - displayedSources.length} more sources`);
+    }
   } else {
     lines.push('(none)');
   }
@@ -189,12 +248,12 @@ async function extractCurrentTurnSnapshot(
       const candidates = [...visible, ...containers];
 
       let text = '';
+      let selectedCandidate: Element | null = null;
       const sidebarPattern = /\n(?:Today|Yesterday|30 Days|New chat)\n/i;
 
       const promptCandidates = candidates
         .map((candidate) => {
-          let candidateText = (candidate as HTMLElement).innerText ?? '';
-          candidateText = candidateText
+          const candidateText = ((candidate as HTMLElement).innerText ?? '')
             .replace(/\u00a0/g, ' ')
             .replace(/\r/g, '')
             .replace(/[ \t]+/g, ' ')
@@ -219,17 +278,19 @@ async function extractCurrentTurnSnapshot(
           if (hasSidebar) score -= 120;
           score -= Math.floor(Math.abs(candidateText.length - 1200) / 80);
 
-          return { candidateText, score };
+          return { candidate, candidateText, score };
         })
-        .filter((entry): entry is { candidateText: string; score: number } => !!entry)
+        .filter(
+          (entry): entry is { candidate: Element; candidateText: string; score: number } => !!entry,
+        )
         .sort((a, b) => b.score - a.score);
 
       if (promptCandidates.length > 0) {
         text = promptCandidates[0].candidateText;
+        selectedCandidate = promptCandidates[0].candidate;
       } else {
         for (const candidate of candidates) {
-          let candidateText = (candidate as HTMLElement).innerText ?? '';
-          candidateText = candidateText
+          const candidateText = ((candidate as HTMLElement).innerText ?? '')
             .replace(/\u00a0/g, ' ')
             .replace(/\r/g, '')
             .replace(/[ \t]+/g, ' ')
@@ -238,8 +299,10 @@ async function extractCurrentTurnSnapshot(
           if (!candidateText) continue;
           if (!text && candidateText.includes('AI-generated')) {
             text = candidateText;
+            selectedCandidate = candidate;
           } else if (!text && candidateText.length > 180) {
             text = candidateText;
+            selectedCandidate = candidate;
           }
         }
       }
@@ -251,6 +314,7 @@ async function extractCurrentTurnSnapshot(
           .replace(/[ \t]+/g, ' ')
           .replace(/\n{3,}/g, '\n\n')
           .trim();
+        selectedCandidate = document.body;
       }
 
       const sourceCountMatch = text.match(/\b(\d+)\s+web\s+pages?\b/i);
@@ -266,6 +330,35 @@ async function extractCurrentTurnSnapshot(
         if (match[1]) citationIdSet.add(match[1]);
       }
 
+      const sourceLinks = Array.from(
+        (selectedCandidate ?? document.body).querySelectorAll('a[href]'),
+      )
+        .map((link) => {
+          const anchor = link as HTMLAnchorElement;
+          const href = anchor.href || anchor.getAttribute('href') || '';
+          const text = (anchor.textContent ?? '')
+            .replace(/\u00a0/g, ' ')
+            .replace(/\r/g, '')
+            .replace(/[ \t]+/g, ' ')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+          const citationMatch = text.match(/\d+/);
+          return {
+            href,
+            text,
+            citationId: citationMatch?.[0] ?? '',
+          };
+        })
+        .filter((link) => /^https?:\/\//i.test(link.href))
+        .filter((link) => !/chat\.deepseek\.com\/a\/chat\/s\//i.test(link.href))
+        .filter((link) => link.href.length > 0);
+
+      for (const sourceLink of sourceLinks) {
+        if (sourceLink.citationId) {
+          citationIdSet.add(sourceLink.citationId);
+        }
+      }
+
       let answer = text;
       if (promptText) {
         const idx = answer.lastIndexOf(promptText);
@@ -277,6 +370,8 @@ async function extractCurrentTurnSnapshot(
       answer = answer.replace(/^Read\s+\d+\s+web\s+pages\s*/i, '');
       answer = answer.replace(/\n?\d+\s+web\s+pages?\b[\s\S]*$/i, '');
       answer = answer.replace(/-\s*\n\d+(?:\s*-\s*\n\d+)*/g, '');
+      answer = answer.replace(/\s*-\s*\d{1,2}\b/g, '');
+      answer = answer.replace(/\[(\d{1,2})\]/g, '');
       answer = answer.replace(/[ \t]+\./g, '.');
       answer = answer.replace(/\n([。！？；，、])/g, '$1');
       answer = answer.replace(
@@ -297,6 +392,7 @@ async function extractCurrentTurnSnapshot(
         answerText: answer,
         sourceCount: Number.isFinite(sourceCount) ? sourceCount : 0,
         citationIds: Array.from(citationIdSet).sort((a, b) => Number(a) - Number(b)),
+        sourceLinks,
       };
     },
     { promptText: prompt },
