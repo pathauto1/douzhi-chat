@@ -8,51 +8,56 @@ permissions:
 
 jobs:
   release:
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Skip on non-tag push
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: echo "Release workflow only publishes on v* tags."
 
-      - uses: oven-sh/setup-bun@v2
+      - if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        uses: oven-sh/setup-bun@v2
+
+      - if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        uses: actions/setup-node@v4
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: bun install --frozen-lockfile
 
       - name: Typecheck
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: bun run typecheck
 
       - name: Lint
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: bun run lint
 
       - name: Test
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: bun run test
 
       - name: Build
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: bun run build
 
       - name: Publish to npm
-        if: ${{ secrets.NPM_TOKEN != '' }}
+        if: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.NPM_TOKEN != '' }}
         run: npm publish --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Skip npm publish (no token configured)
-        if: ${{ secrets.NPM_TOKEN == '' }}
+        if: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.NPM_TOKEN == '' }}
         run: echo "NPM_TOKEN is not configured. Skipping npm publish."
 
       - name: Create GitHub Release
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-
-  skip:
-    if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Skip on non-tag push
-        run: echo "Release workflow only publishes on v* tags."
