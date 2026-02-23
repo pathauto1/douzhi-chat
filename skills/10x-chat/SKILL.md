@@ -1,11 +1,11 @@
 ---
 name: 10x-chat
-description: Chat with web AI agents (ChatGPT, Gemini, Claude, Grok, NotebookLM) via browser automation. Use when stuck, need cross-validation, or want a second-model review.
+description: Chat with web AI agents (ChatGPT, Gemini, Claude, Grok, NotebookLM, Yuanbao) via browser automation. Use when stuck, need cross-validation, or want a second-model review.
 ---
 
 # 10x-chat — AI Agent Skill
 
-Use 10x-chat to send prompts to web-based AI agents (ChatGPT, Gemini, Claude, Grok, NotebookLM) via automated browser sessions. The browser uses a persisted Chrome profile, so the user only needs to login once.
+Use 10x-chat to send prompts to web-based AI agents (ChatGPT, Gemini, Claude, Grok, NotebookLM, Yuanbao) via automated browser sessions. The browser uses a persisted Chrome profile, so the user only needs to login once.
 
 ## When to use
 
@@ -25,6 +25,7 @@ npx 10x-chat@latest login gemini
 npx 10x-chat@latest login claude
 npx 10x-chat@latest login grok
 npx 10x-chat@latest login notebooklm
+npx 10x-chat@latest login yuanbao
 
 # Chat with a single provider
 npx 10x-chat@latest chat -p "Review this code for bugs" --provider chatgpt --file "src/**/*.ts"

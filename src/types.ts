@@ -2,7 +2,7 @@ import type { Page } from 'playwright';
 
 // ── Provider Types ──────────────────────────────────────────────
 
-export type ProviderName = 'chatgpt' | 'gemini' | 'claude' | 'grok' | 'notebooklm';
+export type ProviderName = 'chatgpt' | 'gemini' | 'claude' | 'grok' | 'notebooklm' | 'yuanbao';
 
 export interface ProviderConfig {
   name: ProviderName;

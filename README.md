@@ -44,6 +44,7 @@ npx 10x-chat@latest login gemini         # Login to Gemini
 npx 10x-chat@latest login claude         # Login to Claude
 npx 10x-chat@latest login grok           # Login to Grok
 npx 10x-chat@latest login notebooklm     # Login to NotebookLM
+npx 10x-chat@latest login yuanbao        # Login to Yuanbao
 npx 10x-chat@latest login --status       # Check login status for all providers
 ```
 
@@ -62,7 +63,7 @@ npx 10x-chat@latest chat -p "Long task" --timeout 600000 --headed  # 10min timeo
 | Flag | Description |
 |------|-------------|
 | `-p, --prompt <text>` | **(required)** The prompt to send |
-| `--provider <name>` | Provider: `chatgpt`, `gemini`, `claude`, `grok`, `notebooklm` (default: config) |
+| `--provider <name>` | Provider: `chatgpt`, `gemini`, `claude`, `grok`, `notebooklm`, `yuanbao` (default: config) |
 | `--model <name>` | Model to select in the UI |
 | `-f, --file <paths...>` | Files/globs to bundle as context |
 | `--copy` | Copy bundle to clipboard instead of sending |
@@ -145,7 +146,8 @@ Security-sensitive files (`.env*`, `*.pem`, `*.key`, etc.) are automatically exc
 │   ├── gemini/
 │   ├── claude/
 │   ├── grok/
-│   └── notebooklm/       # NotebookLM browser profile (shared Google auth)
+│   ├── notebooklm/       # NotebookLM browser profile (shared Google auth)
+│   └── yuanbao/
 ├── sessions/
 │   └── <uuid>/
 │       ├── meta.json     # Session metadata
@@ -173,6 +175,7 @@ This lets agents like Codex or Claude Code use 10x-chat to query other models fo
 | Claude | ✅ | claude.ai |
 | Grok | ✅ | grok.com |
 | NotebookLM | ✅ | notebooklm.google.com |
+| Yuanbao | ✅ | yuanbao.tencent.com |
 
 ## Development
 

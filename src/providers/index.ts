@@ -4,3 +4,4 @@ export { GEMINI_CONFIG, geminiActions } from './gemini.js';
 export { GROK_CONFIG, grokActions } from './grok.js';
 export { NOTEBOOKLM_CONFIG, notebooklmActions } from './notebooklm.js';
 export { getProvider, isValidProvider, listProviders } from './registry.js';
+export { YUANBAO_CONFIG, yuanbaoActions } from './yuanbao.js';

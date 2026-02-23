@@ -4,6 +4,7 @@ import { CLAUDE_CONFIG, claudeActions } from './claude.js';
 import { GEMINI_CONFIG, geminiActions } from './gemini.js';
 import { GROK_CONFIG, grokActions } from './grok.js';
 import { NOTEBOOKLM_CONFIG, notebooklmActions } from './notebooklm.js';
+import { YUANBAO_CONFIG, yuanbaoActions } from './yuanbao.js';
 
 const PROVIDERS: Record<ProviderName, Provider> = {
   chatgpt: { config: CHATGPT_CONFIG, actions: chatgptActions },
@@ -11,6 +12,7 @@ const PROVIDERS: Record<ProviderName, Provider> = {
   claude: { config: CLAUDE_CONFIG, actions: claudeActions },
   grok: { config: GROK_CONFIG, actions: grokActions },
   notebooklm: { config: NOTEBOOKLM_CONFIG, actions: notebooklmActions },
+  yuanbao: { config: YUANBAO_CONFIG, actions: yuanbaoActions },
 };
 
 /** Get a provider by name, throws if not found. */

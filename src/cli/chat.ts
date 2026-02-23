@@ -9,7 +9,10 @@ export function createChatCommand(): Command {
   const cmd = new Command('chat')
     .description('Chat with an AI provider via browser automation')
     .requiredOption('-p, --prompt <text>', 'The prompt to send')
-    .option('--provider <name>', 'Provider to use (chatgpt, gemini, claude, grok)')
+    .option(
+      '--provider <name>',
+      'Provider to use (chatgpt, gemini, claude, grok, notebooklm, yuanbao)',
+    )
     .option('--model <name>', 'Model to select')
     .option('-f, --file <paths...>', 'Files/globs to include as context')
     .option('-a, --attach <paths...>', 'Images/files to upload as attachments')

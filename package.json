@@ -1,7 +1,7 @@
 {
   "name": "10x-chat",
   "version": "0.3.8",
-  "description": "CLI to chat with web AI agents (ChatGPT, Gemini, Claude) via browser automation",
+  "description": "CLI to chat with web AI agents (ChatGPT, Gemini, Claude, Grok, NotebookLM, Yuanbao) via browser automation",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -39,6 +39,9 @@
     "chatgpt",
     "gemini",
     "claude",
+    "grok",
+    "notebooklm",
+    "yuanbao",
     "cli",
     "browser-automation",
     "playwright"

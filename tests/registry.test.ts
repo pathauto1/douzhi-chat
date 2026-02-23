@@ -9,7 +9,8 @@ describe('Provider Registry', () => {
     expect(providers).toContain('claude');
     expect(providers).toContain('grok');
     expect(providers).toContain('notebooklm');
-    expect(providers).toHaveLength(5);
+    expect(providers).toContain('yuanbao');
+    expect(providers).toHaveLength(6);
   });
 
   it('should get a provider by name', () => {
@@ -41,6 +42,7 @@ describe('Provider Registry', () => {
     expect(isValidProvider('claude')).toBe(true);
     expect(isValidProvider('grok')).toBe(true);
     expect(isValidProvider('notebooklm')).toBe(true);
+    expect(isValidProvider('yuanbao')).toBe(true);
     expect(isValidProvider('unknown')).toBe(false);
     expect(isValidProvider('')).toBe(false);
     // Prototype pollution guard

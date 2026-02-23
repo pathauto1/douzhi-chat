@@ -48,6 +48,7 @@ npx 10x-chat@latest login gemini         # 登入 Gemini
 npx 10x-chat@latest login claude         # 登入 Claude
 npx 10x-chat@latest login grok           # 登入 Grok
 npx 10x-chat@latest login notebooklm     # 登入 NotebookLM
+npx 10x-chat@latest login yuanbao        # 登入元寶
 npx 10x-chat@latest login --status       # 檢查所有提供者的登入狀態
 ```
 
@@ -66,7 +67,7 @@ npx 10x-chat@latest chat -p "長時間任務" --timeout 600000 --headed  # 10 �
 | 參數 | 說明 |
 |------|------|
 | `-p, --prompt <text>` | **（必填）** 要發送的提示 |
-| `--provider <name>` | 提供者：`chatgpt`、`gemini`、`claude`、`grok`、`notebooklm`（預設：設定檔） |
+| `--provider <name>` | 提供者：`chatgpt`、`gemini`、`claude`、`grok`、`notebooklm`、`yuanbao`（預設：設定檔） |
 | `--model <name>` | 要在 UI 中選擇的模型 |
 | `-f, --file <paths...>` | 要作為上下文打包的檔案/glob 模式 |
 | `--copy` | 將打包內容複製到剪貼簿而不發送 |
@@ -149,7 +150,8 @@ npx 10x-chat@latest chat -p "檢查這些檔案" --file "src/**/*.ts" "!src/**/*
 │   ├── gemini/
 │   ├── claude/
 │   ├── grok/
-│   └── notebooklm/       # NotebookLM 瀏覽器設定（共用 Google 驗證）
+│   ├── notebooklm/       # NotebookLM 瀏覽器設定（共用 Google 驗證）
+│   └── yuanbao/
 ├── sessions/
 │   └── <uuid>/
 │       ├── meta.json     # 工作階段中繼資料
@@ -177,6 +179,7 @@ npx 10x-chat@latest skill install
 | Claude | ✅ | claude.ai |
 | Grok | ✅ | grok.com |
 | NotebookLM | ✅ | notebooklm.google.com |
+| Yuanbao | ✅ | yuanbao.tencent.com |
 
 ## 開發
 
