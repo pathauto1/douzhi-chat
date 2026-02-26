@@ -37,3 +37,13 @@ export function getErrorsDir(): string {
 export function getErrorsLogPath(): string {
   return path.join(getErrorsDir(), 'errors.jsonl');
 }
+
+/** Risk guard directory: ~/.douzhi-chat/risk */
+export function getRiskDir(): string {
+  return path.join(getAppDir(), 'risk');
+}
+
+/** Risk guard state path: ~/.douzhi-chat/risk/state.json */
+export function getRiskStatePath(): string {
+  return path.join(getRiskDir(), 'state.json');
+}

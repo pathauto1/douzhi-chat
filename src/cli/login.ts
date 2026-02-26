@@ -10,7 +10,7 @@ export function createLoginCommand(): Command {
     .description('Login to an AI provider (opens browser for authentication)')
     .argument(
       '[provider]',
-      'Provider to login to (chatgpt, gemini, claude, grok, notebooklm, yuanbao, deepseek)',
+      'Provider to login to (chatgpt, gemini, claude, grok, notebooklm, yuanbao, deepseek, doubao)',
     )
     .option('--all', 'Login to all providers')
     .option('--status', 'Check login status for all providers')

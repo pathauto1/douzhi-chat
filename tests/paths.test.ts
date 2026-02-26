@@ -7,6 +7,8 @@ import {
   getErrorsDir,
   getErrorsLogPath,
   getProfileDir,
+  getRiskDir,
+  getRiskStatePath,
   getSessionDir,
   getSessionsDir,
 } from '../src/paths.js';
@@ -62,5 +64,11 @@ describe('Paths', () => {
     expect(getErrorsLogPath()).toBe(
       path.join(os.homedir(), '.douzhi-chat', 'errors', 'errors.jsonl'),
     );
+  });
+
+  it('should return risk dir and state path', () => {
+    delete process.env.DOUZHI_CHAT_HOME;
+    expect(getRiskDir()).toBe(path.join(os.homedir(), '.douzhi-chat', 'risk'));
+    expect(getRiskStatePath()).toBe(path.join(os.homedir(), '.douzhi-chat', 'risk', 'state.json'));
   });
 });

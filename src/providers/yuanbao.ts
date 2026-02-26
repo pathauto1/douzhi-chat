@@ -39,6 +39,7 @@ interface YuanbaoSourceEntry {
   source: string;
   title: string;
   summary: string;
+  url: string;
 }
 
 function normalizeBlockText(text: string): string {
@@ -74,6 +75,7 @@ function formatStructuredResponse(
       const summary =
         source.summary.length > 240 ? `${source.summary.slice(0, 240)}...` : source.summary;
       lines.push(`${label}. ${title}`);
+      if (source.url) lines.push(`   ${source.url}`);
       if (summary) lines.push(`   ${summary}`);
     }
   } else if (turn.citationIds.length > 0) {
@@ -224,111 +226,27 @@ async function extractLatestTurnSnapshot(page: Page): Promise<YuanbaoTurnSnapsho
 }
 
 async function extractSourcesFromLatestTurn(page: Page): Promise<YuanbaoSourceEntry[]> {
-  const latestBubble = page.locator(SELECTORS.aiBubble).last();
-  const sourcesButton = latestBubble
-    .locator(SELECTORS.sourcesToolbarButton)
-    .filter({ hasText: /sources|参考来源|引用来源/i })
-    .first();
+  const parseDrawerSources = async (): Promise<YuanbaoSourceEntry[]> => {
+    const drawer = page.locator(SELECTORS.sourcesDrawer).first();
+    const visible = await drawer
+      .waitFor({ state: 'visible', timeout: 1_500 })
+      .then(() => true)
+      .catch(() => false);
+    if (!visible) return [];
 
-  if ((await sourcesButton.count()) === 0) {
-    return [];
-  }
-
-  await sourcesButton.click({ timeout: 4_000 });
-
-  const drawer = page.locator(SELECTORS.sourcesDrawer).first();
-  await drawer.waitFor({ state: 'visible', timeout: 6_000 });
-
-  const sources = await drawer.evaluate((root) => {
-    const items = Array.from(
-      root.querySelectorAll('.agent-dialogue-references__item .hyc-common-markdown__ref_card'),
-    );
-    return items
-      .map((card) => {
-        const index = (
-          card.querySelector('.hyc-common-markdown__ref_card-foot__idx')?.textContent ?? ''
-        )
-          .trim()
-          .replace(/\u00a0/g, ' ')
-          .replace(/\r/g, '')
-          .replace(/[ \t]+/g, ' ')
-          .replace(/\n{3,}/g, '\n\n')
-          .trim();
-        const source = (
-          card.querySelector(
-            '.hyc-common-markdown__ref_card-foot__txt, .hyc-common-markdown__ref_card-foot__source_txt',
-          )?.textContent ?? ''
-        )
-          .trim()
-          .replace(/\u00a0/g, ' ')
-          .replace(/\r/g, '')
-          .replace(/[ \t]+/g, ' ')
-          .replace(/\n{3,}/g, '\n\n')
-          .trim();
-        const title = ((card.querySelector('h4')?.textContent ?? '').trim() ?? '')
-          .replace(/\u00a0/g, ' ')
-          .replace(/\r/g, '')
-          .replace(/[ \t]+/g, ' ')
-          .replace(/\n{3,}/g, '\n\n')
-          .trim();
-        const summary = ((card.querySelector('p')?.textContent ?? '').trim() ?? '')
-          .replace(/\u00a0/g, ' ')
-          .replace(/\r/g, '')
-          .replace(/[ \t]+/g, ' ')
-          .replace(/\n{3,}/g, '\n\n')
-          .trim();
-        return { index, source, title, summary };
-      })
-      .filter((item) => item.index || item.source || item.title || item.summary);
-  });
-
-  const closeBtn = page.locator(`${SELECTORS.sourcesDrawer} button`).first();
-  if ((await closeBtn.count()) > 0) {
-    await closeBtn.click().catch(() => {});
-  }
-  await page.keyboard.press('Escape').catch(() => {});
-
-  return sources.map((source) => ({
-    index: normalizeBlockText(source.index),
-    source: normalizeBlockText(source.source),
-    title: normalizeBlockText(source.title),
-    summary: normalizeBlockText(source.summary),
-  }));
-}
-
-async function extractSourcesFromCitationPopover(page: Page): Promise<YuanbaoSourceEntry[]> {
-  const latestBubble = page.locator(SELECTORS.aiBubble).last();
-  const citationTriggers = latestBubble.locator('.hyc-common-markdown__ref-list__trigger');
-  const triggerCount = await citationTriggers.count();
-  if (triggerCount === 0) {
-    return [];
-  }
-
-  const merged: YuanbaoSourceEntry[] = [];
-  const maxTriggers = Math.min(triggerCount, 8);
-
-  for (let i = 0; i < maxTriggers; i++) {
-    const trigger = citationTriggers.nth(i);
-    await trigger.click({ timeout: 2_500 }).catch(() => {});
-    await page.waitForTimeout(260);
-
-    const sources = await page.evaluate(() => {
-      const cards = Array.from(document.querySelectorAll('.hyc-common-markdown__ref_card')).filter(
-        (el) => {
-          const style = window.getComputedStyle(el);
-          const rect = el.getBoundingClientRect();
-          return (
-            style.display !== 'none' &&
-            style.visibility !== 'hidden' &&
-            rect.width > 0 &&
-            rect.height > 0 &&
-            rect.y > 0
-          );
-        },
+    const sources = await drawer.evaluate((root) => {
+      const items = Array.from(
+        root.querySelectorAll('.agent-dialogue-references__item .hyc-common-markdown__ref_card'),
       );
-
-      return cards
+      return items
         .map((card) => {
+          const url = (card.getAttribute('data-url') ?? '')
+            .trim()
+            .replace(/\u00a0/g, ' ')
+            .replace(/\r/g, '')
+            .replace(/[ \t]+/g, ' ')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
           const index = (
             card.querySelector('.hyc-common-markdown__ref_card-foot__idx')?.textContent ?? ''
           )
@@ -349,44 +267,539 @@ async function extractSourcesFromCitationPopover(page: Page): Promise<YuanbaoSou
             .replace(/[ \t]+/g, ' ')
             .replace(/\n{3,}/g, '\n\n')
             .trim();
-          const title = (card.querySelector('h4')?.textContent ?? '')
-            .trim()
+          const title = ((card.querySelector('h4')?.textContent ?? '').trim() ?? '')
             .replace(/\u00a0/g, ' ')
             .replace(/\r/g, '')
             .replace(/[ \t]+/g, ' ')
             .replace(/\n{3,}/g, '\n\n')
             .trim();
-          const summary = (card.querySelector('p')?.textContent ?? '')
-            .trim()
+          const summary = ((card.querySelector('p')?.textContent ?? '').trim() ?? '')
             .replace(/\u00a0/g, ' ')
             .replace(/\r/g, '')
             .replace(/[ \t]+/g, ' ')
             .replace(/\n{3,}/g, '\n\n')
             .trim();
-          return { index, source, title, summary };
+          return { index, source, title, summary, url };
         })
-        .filter((item) => item.index || item.source || item.title || item.summary);
+        .filter((item) => item.index || item.source || item.title || item.summary || item.url);
     });
 
-    merged.push(
-      ...sources.map((source) => ({
-        index: normalizeBlockText(source.index),
-        source: normalizeBlockText(source.source),
-        title: normalizeBlockText(source.title),
-        summary: normalizeBlockText(source.summary),
-      })),
-    );
+    return sources.map((source) => ({
+      index: normalizeBlockText(source.index),
+      source: normalizeBlockText(source.source),
+      title: normalizeBlockText(source.title),
+      summary: normalizeBlockText(source.summary),
+      url: normalizeBlockText(source.url),
+    }));
+  };
+
+  const closeDrawer = async (): Promise<void> => {
+    const closeBtn = page.locator(`${SELECTORS.sourcesDrawer} button`).first();
+    if ((await closeBtn.count()) > 0) {
+      await closeBtn.click().catch(() => {});
+    }
+    await page.keyboard.press('Escape').catch(() => {});
+  };
+
+  const clickSourcesByDom = async (): Promise<boolean> => {
+    return page
+      .evaluate(() => {
+        const bubbles = Array.from(document.querySelectorAll('.agent-chat__bubble--ai'));
+        const latestBubble = bubbles[bubbles.length - 1] as HTMLElement | undefined;
+        if (!latestBubble) return false;
+
+        latestBubble.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
+        const rect = latestBubble.getBoundingClientRect();
+        latestBubble.dispatchEvent(
+          new MouseEvent('mousemove', {
+            bubbles: true,
+            clientX: Math.max(rect.left + 14, 8),
+            clientY: Math.max(rect.top + 14, 8),
+          }),
+        );
+        latestBubble.dispatchEvent(
+          new MouseEvent('mouseover', {
+            bubbles: true,
+            clientX: Math.max(rect.left + 14, 8),
+            clientY: Math.max(rect.top + 14, 8),
+          }),
+        );
+
+        const norm = (text: string) =>
+          text
+            .replace(/\u00a0/g, ' ')
+            .replace(/\r/g, '')
+            .replace(/[ \t]+/g, ' ')
+            .trim();
+        const isSourceLabel = (text: string) =>
+          text === 'Sources' || text === '参考来源' || text === '引用来源';
+
+        const nodes = Array.from(
+          latestBubble.querySelectorAll('.agent-chat__toolbar__right, button, div, span, a'),
+        ) as HTMLElement[];
+        const target = nodes.find((node) => isSourceLabel(norm(node.textContent ?? '')));
+        if (!target) return false;
+
+        const clickable =
+          (target.closest(
+            'button, a, [role="button"], .agent-chat__toolbar__right',
+          ) as HTMLElement | null) ?? target;
+        clickable.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+        clickable.click();
+        return true;
+      })
+      .catch(() => false);
+  };
+
+  const latestBubble = page.locator(SELECTORS.aiBubble).last();
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await page
+      .evaluate(() => {
+        const bubbles = Array.from(document.querySelectorAll('.agent-chat__bubble--ai'));
+        const latest = bubbles[bubbles.length - 1] as HTMLElement | undefined;
+        if (!latest) return;
+        latest.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
+        const rect = latest.getBoundingClientRect();
+        latest.dispatchEvent(
+          new MouseEvent('mousemove', {
+            bubbles: true,
+            clientX: Math.max(rect.left + 14, 8),
+            clientY: Math.max(rect.top + 14, 8),
+          }),
+        );
+        latest.dispatchEvent(
+          new MouseEvent('mouseover', {
+            bubbles: true,
+            clientX: Math.max(rect.left + 14, 8),
+            clientY: Math.max(rect.top + 14, 8),
+          }),
+        );
+      })
+      .catch(() => {});
+    await page.waitForTimeout(120);
+
+    let clicked = false;
+    const sourcesButton = latestBubble
+      .locator(SELECTORS.sourcesToolbarButton)
+      .filter({ hasText: /sources|参考来源|引用来源/i })
+      .first();
+    if ((await sourcesButton.count()) > 0) {
+      clicked = await sourcesButton
+        .click({ timeout: 2_500 })
+        .then(() => true)
+        .catch(async () => {
+          return sourcesButton
+            .click({ timeout: 1_500, force: true })
+            .then(() => true)
+            .catch(() => false);
+        });
+    }
+
+    if (!clicked) {
+      clicked = await clickSourcesByDom();
+    }
+
+    if (!clicked) continue;
+
+    await page.waitForTimeout(220);
+    const sources = await parseDrawerSources().catch(() => []);
+    await closeDrawer();
+    if (sources.length > 0) return sources;
+  }
+
+  return [];
+}
+
+async function extractSourcesFromCitationPopover(
+  page: Page,
+  preferredCitationIds: string[] = [],
+): Promise<YuanbaoSourceEntry[]> {
+  const latestBubble = page.locator(SELECTORS.aiBubble).last();
+  const collectTriggerMeta = async (): Promise<
+    Array<{ num: string; source: string; sourceType: string; idxList: string }>
+  > => {
+    const read = async (
+      scope: 'latest' | 'global',
+    ): Promise<Array<{ num: string; source: string; sourceType: string; idxList: string }>> => {
+      if (scope === 'latest') {
+        return latestBubble.evaluate((root) => {
+          const normalize = (text: string): string =>
+            text
+              .replace(/\u00a0/g, ' ')
+              .replace(/\r/g, '')
+              .replace(/[ \t]+/g, ' ')
+              .replace(/\n{3,}/g, '\n\n')
+              .trim();
+
+          const triggers = Array.from(
+            root.querySelectorAll('.hyc-common-markdown__ref-list__trigger'),
+          ) as HTMLElement[];
+          const dedup = new Map<
+            string,
+            { num: string; source: string; sourceType: string; idxList: string }
+          >();
+
+          for (const trigger of triggers) {
+            const num = normalize(trigger.getAttribute('data-num') ?? trigger.textContent ?? '');
+            const source = normalize(trigger.getAttribute('data-web-site-name') ?? '');
+            const sourceType = normalize(trigger.getAttribute('data-source-type') ?? '');
+            const idxList = normalize(trigger.getAttribute('data-idx-list') ?? '');
+            const key = num || `${source}|${idxList}`;
+            if (!dedup.has(key)) {
+              dedup.set(key, { num, source, sourceType, idxList });
+            }
+          }
+
+          return Array.from(dedup.values());
+        });
+      }
+
+      return page.evaluate(() => {
+        const normalize = (text: string): string =>
+          text
+            .replace(/\u00a0/g, ' ')
+            .replace(/\r/g, '')
+            .replace(/[ \t]+/g, ' ')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+
+        const triggers = Array.from(
+          document.querySelectorAll('.hyc-common-markdown__ref-list__trigger'),
+        ) as HTMLElement[];
+        const dedup = new Map<
+          string,
+          { num: string; source: string; sourceType: string; idxList: string }
+        >();
+
+        for (const trigger of triggers) {
+          const num = normalize(trigger.getAttribute('data-num') ?? trigger.textContent ?? '');
+          const source = normalize(trigger.getAttribute('data-web-site-name') ?? '');
+          const sourceType = normalize(trigger.getAttribute('data-source-type') ?? '');
+          const idxList = normalize(trigger.getAttribute('data-idx-list') ?? '');
+          const key = num || `${source}|${idxList}`;
+          if (!dedup.has(key)) {
+            dedup.set(key, { num, source, sourceType, idxList });
+          }
+        }
+
+        return Array.from(dedup.values());
+      });
+    };
+
+    const deadline = Date.now() + 8_000;
+    while (Date.now() < deadline) {
+      await page
+        .evaluate(() => {
+          const bubbles = Array.from(document.querySelectorAll('.agent-chat__bubble--ai'));
+          const latest = bubbles[bubbles.length - 1] as HTMLElement | undefined;
+          if (!latest) return;
+          latest.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
+          const rect = latest.getBoundingClientRect();
+          latest.dispatchEvent(
+            new MouseEvent('mousemove', {
+              bubbles: true,
+              clientX: Math.max(rect.left + 12, 8),
+              clientY: Math.max(rect.top + 12, 8),
+            }),
+          );
+          latest.dispatchEvent(
+            new MouseEvent('mouseover', {
+              bubbles: true,
+              clientX: Math.max(rect.left + 12, 8),
+              clientY: Math.max(rect.top + 12, 8),
+            }),
+          );
+        })
+        .catch(() => {});
+
+      const latest = await read('latest').catch(() => []);
+      if (latest.length > 0) return latest;
+      const global = await read('global').catch(() => []);
+      if (global.length > 0) return global;
+      await page.waitForTimeout(180);
+    }
+
+    return [];
+  };
+
+  const triggerMeta = await collectTriggerMeta();
+
+  const preferredSet = new Set(preferredCitationIds.filter((id) => /^\d+$/.test(id)));
+  if (triggerMeta.length === 0 && preferredSet.size === 0) {
+    return [];
+  }
+
+  const targets =
+    preferredSet.size > 0 ? triggerMeta.filter((meta) => preferredSet.has(meta.num)) : triggerMeta;
+  const fallbackTargets =
+    preferredSet.size > 0
+      ? Array.from(preferredSet).map((num) => ({ num, source: '', sourceType: '', idxList: '' }))
+      : [];
+  const runTargets = (
+    targets.length > 0 ? targets : triggerMeta.length > 0 ? triggerMeta : fallbackTargets
+  ).slice(0, 20);
+
+  const readVisibleCards = async (): Promise<YuanbaoSourceEntry[]> => {
+    const cards = await page.evaluate(() => {
+      const normalize = (text: string): string =>
+        text
+          .replace(/\u00a0/g, ' ')
+          .replace(/\r/g, '')
+          .replace(/[ \t]+/g, ' ')
+          .replace(/\n{3,}/g, '\n\n')
+          .trim();
+
+      const nodes = Array.from(document.querySelectorAll('.hyc-common-markdown__ref_card')).filter(
+        (el) => {
+          const style = window.getComputedStyle(el);
+          const rect = el.getBoundingClientRect();
+          return (
+            style.display !== 'none' &&
+            style.visibility !== 'hidden' &&
+            rect.width > 0 &&
+            rect.height > 0 &&
+            rect.y > 0
+          );
+        },
+      );
+
+      return nodes
+        .map((card) => {
+          const index = normalize(
+            card.getAttribute('data-idx') ??
+              card.querySelector('.hyc-common-markdown__ref_card-foot__idx')?.textContent ??
+              '',
+          );
+          const source = normalize(
+            card.querySelector(
+              '.hyc-common-markdown__ref_card-foot__txt, .hyc-common-markdown__ref_card-foot__source_txt',
+            )?.textContent ?? '',
+          );
+          const title = normalize(card.querySelector('h4')?.textContent ?? '');
+          const summary = normalize(card.querySelector('p')?.textContent ?? '');
+          const url = normalize(card.getAttribute('data-url') ?? '');
+          return { index, source, title, summary, url };
+        })
+        .filter((item) => item.index || item.source || item.title || item.summary || item.url);
+    });
+
+    return cards.map((card) => ({
+      index: normalizeBlockText(card.index),
+      source: normalizeBlockText(card.source),
+      title: normalizeBlockText(card.title),
+      summary: normalizeBlockText(card.summary),
+      url: normalizeBlockText(card.url),
+    }));
+  };
+
+  const dedup = new Map<string, YuanbaoSourceEntry>();
+  const upsert = (source: YuanbaoSourceEntry) => {
+    const key = source.url || `${source.index}|${source.source}|${source.title}`;
+    const current = dedup.get(key);
+    if (!current) {
+      dedup.set(key, source);
+      return;
+    }
+    const currentScore = Number(Boolean(current.url)) + Number(Boolean(current.summary));
+    const nextScore = Number(Boolean(source.url)) + Number(Boolean(source.summary));
+    if (nextScore > currentScore) {
+      dedup.set(key, source);
+    }
+  };
+
+  for (const target of runTargets) {
+    let captured = false;
+
+    if (target.num) {
+      const candidates = [
+        latestBubble.locator(`.hyc-common-markdown__ref-list__trigger[data-num="${target.num}"]`),
+        page.locator(`.hyc-common-markdown__ref-list__trigger[data-num="${target.num}"]`),
+      ];
+
+      for (const triggersForNum of candidates) {
+        const triggerCount = await triggersForNum.count();
+        const clickAttempts = Math.min(triggerCount, 3);
+
+        for (let i = 0; i < clickAttempts; i++) {
+          const trigger = triggersForNum.nth(i);
+          await trigger.click({ timeout: 2_500 }).catch(async () => {
+            await trigger.click({ timeout: 1_500, force: true }).catch(() => {});
+          });
+          await page.waitForTimeout(240);
+
+          const cards = await readVisibleCards().catch(() => []);
+          if (cards.length > 0) {
+            for (const card of cards) {
+              upsert({
+                ...card,
+                index: card.index || target.num,
+                source: card.source || target.source,
+              });
+            }
+            captured = true;
+            break;
+          }
+
+          await page.keyboard.press('Escape').catch(() => {});
+          await page.waitForTimeout(80);
+        }
+
+        if (captured) break;
+      }
+    }
+
+    if (!captured) {
+      upsert({
+        index: target.num,
+        source: target.source,
+        title: '',
+        summary: '',
+        url: '',
+      });
+    }
 
     await page.keyboard.press('Escape').catch(() => {});
     await page.waitForTimeout(80);
   }
 
-  const dedup = new Map<string, YuanbaoSourceEntry>();
-  for (const source of merged) {
-    const key = `${source.index}|${source.source}|${source.title}`;
-    if (!dedup.has(key)) dedup.set(key, source);
-  }
   return Array.from(dedup.values());
+}
+
+async function extractSourcesFromConversationDetail(
+  page: Page,
+  preferredCitationIds: string[] = [],
+): Promise<YuanbaoSourceEntry[]> {
+  const sources = await page.evaluate(
+    async ({ preferredIds }) => {
+      const normalize = (text: string): string =>
+        text
+          .replace(/\u00a0/g, ' ')
+          .replace(/\r/g, '')
+          .replace(/[ \t]+/g, ' ')
+          .replace(/\n{3,}/g, '\n\n')
+          .trim();
+
+      const getChatContext = (): { agentId: string; conversationId: string } => {
+        const segments = location.pathname.split('/').filter(Boolean);
+        const chatIndex = segments.indexOf('chat');
+        if (chatIndex >= 0) {
+          return {
+            agentId: segments[chatIndex + 1] ?? '',
+            conversationId: segments[chatIndex + 2] ?? '',
+          };
+        }
+        if (segments[0] === 'chat') {
+          return {
+            agentId: segments[1] ?? '',
+            conversationId: segments[2] ?? '',
+          };
+        }
+        return { agentId: '', conversationId: '' };
+      };
+
+      const { agentId, conversationId } = getChatContext();
+      if (!agentId || !conversationId) return [];
+
+      const response = await fetch('/api/user/agent/conversation/v1/detail', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          conversationId,
+          offset: 0,
+          limit: 20,
+          agentId,
+        }),
+      }).catch(() => null);
+
+      if (!response || !response.ok) return [];
+
+      const json = await response.json().catch(() => null);
+      if (!json) return [];
+
+      const preferredSet = new Set(
+        preferredIds.map((id) => normalize(String(id))).filter((id) => /^\d+$/.test(id)),
+      );
+
+      const out: Array<{
+        index: string;
+        source: string;
+        title: string;
+        summary: string;
+        url: string;
+      }> = [];
+
+      const convs = Array.isArray(json?.convs) ? json.convs : [];
+      for (const conv of convs) {
+        const speeches = Array.isArray(conv?.speechesV2) ? conv.speechesV2 : [];
+        for (const speech of speeches) {
+          const content = Array.isArray(speech?.content) ? speech.content : [];
+          for (const block of content) {
+            const docs = Array.isArray(block?.docs) ? block.docs : [];
+            for (const doc of docs) {
+              const index = normalize(String(doc?.index ?? doc?.idx ?? doc?.id ?? ''));
+              if (preferredSet.size > 0 && index && !preferredSet.has(index)) {
+                continue;
+              }
+              const source = normalize(
+                String(
+                  doc?.web_site_name ??
+                    doc?.webSiteName ??
+                    doc?.source_name ??
+                    doc?.sourceName ??
+                    doc?.source ??
+                    '',
+                ),
+              );
+              const title = normalize(String(doc?.title ?? doc?.docTitle ?? ''));
+              const summary = normalize(String(doc?.quote ?? doc?.summary ?? doc?.desc ?? ''));
+              const url = normalize(
+                String(doc?.web_url ?? doc?.url ?? doc?.href ?? doc?.link ?? ''),
+              );
+
+              if (!index && !source && !title && !summary && !url) continue;
+              out.push({ index, source, title, summary, url });
+            }
+          }
+        }
+      }
+
+      const dedup = new Map<
+        string,
+        { index: string; source: string; title: string; summary: string; url: string }
+      >();
+      for (const item of out) {
+        const key = item.url || `${item.index}|${item.source}|${item.title}`;
+        if (!dedup.has(key)) {
+          dedup.set(key, item);
+          continue;
+        }
+        const current = dedup.get(key);
+        if (!current) continue;
+        const currentScore =
+          Number(Boolean(current.url)) +
+          Number(Boolean(current.summary)) +
+          Number(Boolean(current.title));
+        const nextScore =
+          Number(Boolean(item.url)) + Number(Boolean(item.summary)) + Number(Boolean(item.title));
+        if (nextScore > currentScore) {
+          dedup.set(key, item);
+        }
+      }
+
+      return Array.from(dedup.values());
+    },
+    { preferredIds: preferredCitationIds },
+  );
+
+  return sources.map((source) => ({
+    index: normalizeBlockText(source.index),
+    source: normalizeBlockText(source.source),
+    title: normalizeBlockText(source.title),
+    summary: normalizeBlockText(source.summary),
+    url: normalizeBlockText(source.url),
+  }));
 }
 
 async function ensureInternetSearchManualAndEnabled(page: Page): Promise<void> {
@@ -638,19 +1051,42 @@ export const yuanbaoActions: ProviderActions = {
     const truncated = elapsed >= timeoutMs && stableCount < STABLE_THRESHOLD && sawNewTurn;
 
     let sources: YuanbaoSourceEntry[] = [];
+    if (sawNewTurn) {
+      for (let attempt = 0; attempt < 3 && sources.length === 0; attempt++) {
+        try {
+          sources = await extractSourcesFromConversationDetail(page, lastSnapshot.citationIds);
+        } catch {
+          // Best-effort: detail API can lag or return partial payload.
+        }
+        if (sources.length === 0) {
+          await page.waitForTimeout(600);
+        }
+      }
+    }
+
     if (sawNewTurn && lastSnapshot.hasSourcesButton) {
-      try {
-        sources = await extractSourcesFromLatestTurn(page);
-      } catch {
-        // Best-effort source extraction; answer should still be returned.
+      for (let attempt = 0; attempt < 2 && sources.length === 0; attempt++) {
+        try {
+          sources = await extractSourcesFromLatestTurn(page);
+        } catch {
+          // Best-effort source extraction; answer should still be returned.
+        }
+        if (sources.length === 0) {
+          await page.waitForTimeout(600);
+        }
       }
     }
 
     if (sawNewTurn && sources.length === 0 && lastSnapshot.citationIds.length > 0) {
-      try {
-        sources = await extractSourcesFromCitationPopover(page);
-      } catch {
-        // Best-effort fallback.
+      for (let attempt = 0; attempt < 3 && sources.length === 0; attempt++) {
+        try {
+          sources = await extractSourcesFromCitationPopover(page, lastSnapshot.citationIds);
+        } catch {
+          // Best-effort fallback.
+        }
+        if (sources.length === 0) {
+          await page.waitForTimeout(700);
+        }
       }
     }
 

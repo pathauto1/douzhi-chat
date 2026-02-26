@@ -9,7 +9,8 @@ export type ProviderName =
   | 'grok'
   | 'notebooklm'
   | 'yuanbao'
-  | 'deepseek';
+  | 'deepseek'
+  | 'doubao';
 
 export interface ProviderConfig {
   name: ProviderName;

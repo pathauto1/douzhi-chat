@@ -1,6 +1,6 @@
 # douzhi-chat
 
-> Chat with web AI agents (ChatGPT, Gemini, Claude, Grok, NotebookLM, Yuanbao, DeepSeek) from your terminal via browser automation.
+> Chat with web AI agents (ChatGPT, Gemini, Claude, Grok, NotebookLM, Yuanbao, DeepSeek, Doubao) from your terminal via browser automation.
 
 **English** | [繁體中文](./README-zh.md)
 
@@ -46,6 +46,7 @@ npx douzhi-chat@latest login grok           # Login to Grok
 npx douzhi-chat@latest login notebooklm     # Login to NotebookLM
 npx douzhi-chat@latest login yuanbao        # Login to Yuanbao
 npx douzhi-chat@latest login deepseek       # Login to DeepSeek
+npx douzhi-chat@latest login doubao         # Login to Doubao
 npx douzhi-chat@latest login --status       # Check login status for all providers
 ```
 
@@ -64,7 +65,7 @@ npx douzhi-chat@latest chat -p "Long task" --timeout 600000 --headed  # 10min ti
 | Flag | Description |
 |------|-------------|
 | `-p, --prompt <text>` | **(required)** The prompt to send |
-| `--provider <name>` | Provider: `chatgpt`, `gemini`, `claude`, `grok`, `notebooklm`, `yuanbao`, `deepseek` (default: config) |
+| `--provider <name>` | Provider: `chatgpt`, `gemini`, `claude`, `grok`, `notebooklm`, `yuanbao`, `deepseek`, `doubao` (default: config) |
 | `--model <name>` | Model to select in the UI |
 | `-f, --file <paths...>` | Files/globs to bundle as context |
 | `--copy` | Copy bundle to clipboard instead of sending |
@@ -180,7 +181,8 @@ Security-sensitive files (`.env*`, `*.pem`, `*.key`, etc.) are automatically exc
 │   ├── grok/
 │   ├── notebooklm/       # NotebookLM browser profile (shared Google auth)
 │   ├── yuanbao/
-│   └── deepseek/
+│   ├── deepseek/
+│   └── doubao/
 ├── sessions/
 │   └── <uuid>/
 │       ├── meta.json     # Session metadata
@@ -212,6 +214,7 @@ This lets agents like Codex or Claude Code use douzhi-chat to query other models
 | NotebookLM | ✅ | notebooklm.google.com |
 | Yuanbao | ✅ | yuanbao.tencent.com |
 | DeepSeek | ✅ | chat.deepseek.com |
+| Doubao | ✅ | doubao.com |
 
 ## Development
 

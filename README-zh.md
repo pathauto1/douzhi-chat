@@ -1,6 +1,6 @@
 # douzhi-chat
 
-> 透過瀏覽器自動化，從終端機與網頁 AI 助手（ChatGPT、Gemini、Claude、Grok、NotebookLM、元寶、DeepSeek）對話。
+> 透過瀏覽器自動化，從終端機與網頁 AI 助手（ChatGPT、Gemini、Claude、Grok、NotebookLM、元寶、DeepSeek、豆包）對話。
 
 douzhi-chat 使用 [Playwright](https://playwright.dev) 自動化瀏覽器工作階段，並保存登入設定。只需登入一次，即可從 CLI 或 AI 編碼助手發送提示——自動附帶檔案內容。
 
@@ -46,6 +46,7 @@ npx douzhi-chat@latest login grok           # 登入 Grok
 npx douzhi-chat@latest login notebooklm     # 登入 NotebookLM
 npx douzhi-chat@latest login yuanbao        # 登入元寶
 npx douzhi-chat@latest login deepseek       # 登入 DeepSeek
+npx douzhi-chat@latest login doubao         # 登入豆包
 npx douzhi-chat@latest login --status       # 檢查所有提供者的登入狀態
 ```
 
@@ -64,7 +65,7 @@ npx douzhi-chat@latest chat -p "長時間任務" --timeout 600000 --headed  # 10
 | 參數 | 說明 |
 |------|------|
 | `-p, --prompt <text>` | **（必填）** 要發送的提示 |
-| `--provider <name>` | 提供者：`chatgpt`、`gemini`、`claude`、`grok`、`notebooklm`、`yuanbao`、`deepseek`（預設：設定檔） |
+| `--provider <name>` | 提供者：`chatgpt`、`gemini`、`claude`、`grok`、`notebooklm`、`yuanbao`、`deepseek`、`doubao`（預設：設定檔） |
 | `--model <name>` | 要在 UI 中選擇的模型 |
 | `-f, --file <paths...>` | 要作為上下文打包的檔案/glob 模式 |
 | `--copy` | 將打包內容複製到剪貼簿而不發送 |
@@ -180,7 +181,8 @@ npx douzhi-chat@latest chat -p "檢查這些檔案" --file "src/**/*.ts" "!src/*
 │   ├── grok/
 │   ├── notebooklm/       # NotebookLM 瀏覽器設定（共用 Google 驗證）
 │   ├── yuanbao/
-│   └── deepseek/
+│   ├── deepseek/
+│   └── doubao/
 ├── sessions/
 │   └── <uuid>/
 │       ├── meta.json     # 工作階段中繼資料
@@ -212,6 +214,7 @@ npx douzhi-chat@latest skill install
 | NotebookLM | ✅ | notebooklm.google.com |
 | Yuanbao | ✅ | yuanbao.tencent.com |
 | DeepSeek | ✅ | chat.deepseek.com |
+| 豆包 | ✅ | doubao.com |
 
 ## 開發
 

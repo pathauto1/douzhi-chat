@@ -2,6 +2,7 @@ import type { Provider, ProviderName } from '../types.js';
 import { CHATGPT_CONFIG, chatgptActions } from './chatgpt.js';
 import { CLAUDE_CONFIG, claudeActions } from './claude.js';
 import { DEEPSEEK_CONFIG, deepseekActions } from './deepseek.js';
+import { DOUBAO_CONFIG, doubaoActions } from './doubao.js';
 import { GEMINI_CONFIG, geminiActions } from './gemini.js';
 import { GROK_CONFIG, grokActions } from './grok.js';
 import { NOTEBOOKLM_CONFIG, notebooklmActions } from './notebooklm.js';
@@ -15,6 +16,7 @@ const PROVIDERS: Record<ProviderName, Provider> = {
   notebooklm: { config: NOTEBOOKLM_CONFIG, actions: notebooklmActions },
   yuanbao: { config: YUANBAO_CONFIG, actions: yuanbaoActions },
   deepseek: { config: DEEPSEEK_CONFIG, actions: deepseekActions },
+  doubao: { config: DOUBAO_CONFIG, actions: doubaoActions },
 };
 
 /** Get a provider by name, throws if not found. */

@@ -11,7 +11,7 @@ export function createChatCommand(): Command {
     .requiredOption('-p, --prompt <text>', 'The prompt to send')
     .option(
       '--provider <name>',
-      'Provider to use (chatgpt, gemini, claude, grok, notebooklm, yuanbao, deepseek)',
+      'Provider to use (chatgpt, gemini, claude, grok, notebooklm, yuanbao, deepseek, doubao)',
     )
     .option('--model <name>', 'Model to select')
     .option('-f, --file <paths...>', 'Files/globs to include as context')

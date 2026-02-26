@@ -1,6 +1,6 @@
 ---
 name: douzhi-chat
-description: Private web-AI execution skill for Douzhi. Source-first workflow, Yuanbao and DeepSeek-ready.
+description: Private web-AI execution skill for Douzhi. Source-first workflow, Yuanbao, DeepSeek, and Doubao-ready.
 ---
 
 # Douzhi AI Web Skill
@@ -55,6 +55,20 @@ cd ~/tools/douzhi-chat
 npx tsx src/bin/cli.ts chat -p "<PROMPT>" --provider deepseek --headed --timeout 180000
 ```
 
+## Login (Doubao)
+
+```bash
+cd ~/tools/douzhi-chat
+npx tsx src/bin/cli.ts login doubao
+```
+
+## Chat (Doubao)
+
+```bash
+cd ~/tools/douzhi-chat
+npx tsx src/bin/cli.ts chat -p "<PROMPT>" --provider doubao --headed --timeout 180000
+```
+
 ## Sanity Check
 
 ```bash
@@ -62,7 +76,7 @@ cd ~/tools/douzhi-chat
 npx tsx src/bin/cli.ts chat --help
 ```
 
-Provider list must include `yuanbao` and `deepseek`.
+Provider list must include `yuanbao`, `deepseek`, and `doubao`.
 
 ## Session Inspection
 
